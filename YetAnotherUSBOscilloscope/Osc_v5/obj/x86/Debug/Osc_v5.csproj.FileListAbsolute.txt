@@ -1,0 +1,8 @@
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\bin\x86\Debug\Osc_v5.exe.config
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\bin\x86\Debug\Osc_v5.exe
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\bin\x86\Debug\Osc_v5.pdb
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\x86\Debug\Osc_v5.csprojAssemblyReference.cache
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\x86\Debug\Osc_v5.Properties.Resources.resources
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\x86\Debug\Osc_v5.csproj.GenerateResource.cache
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\x86\Debug\Osc_v5.exe
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\x86\Debug\Osc_v5.pdb

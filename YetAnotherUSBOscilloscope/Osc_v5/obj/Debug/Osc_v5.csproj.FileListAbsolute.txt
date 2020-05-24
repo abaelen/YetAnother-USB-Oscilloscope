@@ -1,0 +1,20 @@
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\bin\Debug\Osc_v5.exe.config
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\bin\Debug\Osc_v5.exe
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\bin\Debug\Osc_v5.pdb
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\Debug\Osc_v5.Form1.resources
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\Debug\Osc_v5.Properties.Resources.resources
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\Debug\Osc_v5.csproj.GenerateResource.cache
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\Debug\Osc_v5.exe
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\Debug\Osc_v5.pdb
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\Debug\Osc_v5.csproj.CoreCompileInputs.cache
+C:\Users\Gebruiker\source\repos\Osc_v5\Osc_v5\obj\Debug\Osc_v5.csprojAssemblyReference.cache
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\bin\Debug\Osc_v5.exe.config
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\bin\Debug\Osc_v5.exe
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\bin\Debug\Osc_v5.pdb
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.Form1.resources
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.Properties.Resources.resources
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.csproj.GenerateResource.cache
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.csproj.CoreCompileInputs.cache
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.exe
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.pdb
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.csprojAssemblyReference.cache
