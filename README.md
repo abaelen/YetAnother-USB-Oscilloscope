@@ -25,6 +25,5 @@ Next updates:
 - Class definitions
 - Introduce FFT transformation (fourier, frequency domain analysis)
 
-<br>
-<img src="https://raw.githubusercontent.com/abaelen/YetAnother-USB-Oscilloscope/tree/master/img/YetAnotherOscilloscope.png?raw=true" />
+![YetAnother Logo](/img/YetAnotherOscilloscope.png)
 <br>
