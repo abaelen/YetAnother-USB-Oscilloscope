@@ -130,6 +130,7 @@ namespace Osc_v5
         UInt16[] USB_Device_bcd = new ushort[1];
 
         public byte USB2_Mode = 1;
+        public byte USB2_TriggerSlope = 1;
         bool OptionFilterOutliers = true;
 
         public Form1()
@@ -264,7 +265,8 @@ namespace Osc_v5
             ZeroTimePoint.FNumber = T_axis[(UInt16)(Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
             //USB_Mode default
             USB2_Mode = 1;
-            //Extrapolate default
+            //Trigger slope default
+            RdButTrSlopeDown.Checked = true;
 
             TmrRefresh.Enabled = true;
             //Show Form
@@ -408,12 +410,6 @@ namespace Osc_v5
 
         }
 
-        private void ChkOptionFilterOutliers_CheckedChanged(object sender, EventArgs e)
-        {
-            OptionFilterOutliers = ChkOptionFilterOutliers.Checked;
-
-        }
-
         private void TmrRefresh_Tick(object sender, EventArgs e)
         {
             float i2_USB2_OGL_Window_Framesfl;
@@ -447,7 +443,7 @@ namespace Osc_v5
         }
 
         public const UInt32 USB2_BufferSize8 = USB2_NumberOfPackets * USB2_TransferSize; //limit Buffersize to 511 x (2byte ADC reading + 2byte Tick data) x 3 packets
-        public const UInt16 USB2_TransferSize = 420;
+        public const UInt16 USB2_TransferSize = 500;
         public const byte USB2_NumberOfPackets = 50;
         public const UInt32 USB2_Win_W = 682;
         public const byte USB2_Win_Div = 10;
@@ -1246,19 +1242,29 @@ namespace Osc_v5
             {
                 if (USB2_VertexBuffer[1][i] != 0)
                 {
-                    bool result2 = USB2_VertexBuffer[2][i] < triggerVPointf;
+                    bool result2 = false;
+                    if (USB2_TriggerSlope == 1)
+                        result2 = USB2_VertexBuffer[2][i] < triggerVPointf;
+                    else
+                        result2 = USB2_VertexBuffer[2][i] > triggerVPointf;
+                    if (result2 == true)
+                        result2 = result2;
                     Int32 y = i - 2;
                     for (y = i - 2; y >= 1; y -= 2) { if (USB2_VertexBuffer[1][y] != 0) break; }
                     bool result1 = false;
-                    if (y > 0) result1 = (USB2_VertexBuffer[2][y] > triggerVPointf);
+                    if (USB2_TriggerSlope == 1)
+                    { if (y > 0) { result1 = (USB2_VertexBuffer[2][y] > triggerVPointf); } }
+                    else
+                    { if (y > 0) { result1 = (USB2_VertexBuffer[2][y] < triggerVPointf); } }
+
                     if (result1 && result2)
                     {
                         triggerPoint = i;
-                        /*TxtUSB2.Invoke(new Action(() =>
+                        TxtUSB2.Invoke(new Action(() =>
                         {
                             TxtUSB2.AppendText(triggerPoint.ToString());
                             TxtUSB2.AppendText("\r\n");
-                        }));*/
+                        }));
                         break;
                     }
                 }
@@ -1915,6 +1921,16 @@ namespace Osc_v5
                 OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Extrapolate, null, 0);
             else
                 OGL_Screen_Status.i2_Set(0, OGL_Screen_Status.i2_USB2_OGL_Extrapolate, null, 0);
+        }
+
+        private void RdButTrSlopeUp_CheckedChanged(object sender, EventArgs e)
+        {
+            USB2_TriggerSlope = 2;
+        }
+
+        private void RdButTrSlopeDown_CheckedChanged(object sender, EventArgs e)
+        {
+            USB2_TriggerSlope = 1;
         }
     }
 }

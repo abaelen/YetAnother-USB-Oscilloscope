@@ -71,7 +71,7 @@ extern "C"
 			
 			W.Draw();
 			W.Time = W.Timer_Stop();
-			if (W.Time < 4 && W.Time > 0) Sleep(4-W.Time);
+			//if (W.Time < 4 && W.Time > 0) Sleep(4-W.Time);
 			W.Timer_Start();
 			//P.CalcTmr();
 			W.FPS();

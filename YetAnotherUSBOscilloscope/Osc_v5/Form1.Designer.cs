@@ -68,7 +68,6 @@ namespace Osc_v5
             this.label14 = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
             this.LblTmrSuspended = new System.Windows.Forms.Label();
-            this.ChkOptionFilterOutliers = new System.Windows.Forms.CheckBox();
             this.label16 = new System.Windows.Forms.Label();
             this.TxtADC_Clock = new System.Windows.Forms.MaskedTextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -96,6 +95,9 @@ namespace Osc_v5
             this.RdButUSBMode_Triggered = new System.Windows.Forms.RadioButton();
             this.RdButUSBMode_Roll = new System.Windows.Forms.RadioButton();
             this.RdButUSBMode_Standard = new System.Windows.Forms.RadioButton();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.RdButTrSlopeUp = new System.Windows.Forms.RadioButton();
+            this.RdButTrSlopeDown = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TrckVTrigger)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TrckTTrigger)).BeginInit();
@@ -104,11 +106,13 @@ namespace Osc_v5
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.GrpBoxUSBMode.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.panel1.Controls.Add(this.groupBox4);
             this.panel1.Controls.Add(this.panel2);
             this.panel1.Controls.Add(this.TrckVTrigger);
             this.panel1.Controls.Add(this.ButTDown);
@@ -386,7 +390,7 @@ namespace Osc_v5
             "40",
             "50",
             "60"});
-            this.CmbmsSleep.Location = new System.Drawing.Point(161, 223);
+            this.CmbmsSleep.Location = new System.Drawing.Point(143, 94);
             this.CmbmsSleep.Name = "CmbmsSleep";
             this.CmbmsSleep.Size = new System.Drawing.Size(68, 21);
             this.CmbmsSleep.TabIndex = 12;
@@ -395,7 +399,7 @@ namespace Osc_v5
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(28, 226);
+            this.label14.Location = new System.Drawing.Point(28, 94);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(30, 13);
             this.label14.TabIndex = 33;
@@ -403,7 +407,7 @@ namespace Osc_v5
             // 
             // label15
             // 
-            this.label15.Location = new System.Drawing.Point(28, 175);
+            this.label15.Location = new System.Drawing.Point(21, 38);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(114, 15);
             this.label15.TabIndex = 34;
@@ -412,24 +416,11 @@ namespace Osc_v5
             // LblTmrSuspended
             // 
             this.LblTmrSuspended.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblTmrSuspended.Location = new System.Drawing.Point(161, 175);
+            this.LblTmrSuspended.Location = new System.Drawing.Point(143, 37);
             this.LblTmrSuspended.Name = "LblTmrSuspended";
             this.LblTmrSuspended.Size = new System.Drawing.Size(82, 15);
             this.LblTmrSuspended.TabIndex = 35;
             this.LblTmrSuspended.Text = "Init...";
-            // 
-            // ChkOptionFilterOutliers
-            // 
-            this.ChkOptionFilterOutliers.AutoSize = true;
-            this.ChkOptionFilterOutliers.Checked = true;
-            this.ChkOptionFilterOutliers.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ChkOptionFilterOutliers.Location = new System.Drawing.Point(878, 514);
-            this.ChkOptionFilterOutliers.Name = "ChkOptionFilterOutliers";
-            this.ChkOptionFilterOutliers.Size = new System.Drawing.Size(84, 17);
-            this.ChkOptionFilterOutliers.TabIndex = 3;
-            this.ChkOptionFilterOutliers.Text = "Filter outliers";
-            this.ChkOptionFilterOutliers.UseVisualStyleBackColor = true;
-            this.ChkOptionFilterOutliers.CheckedChanged += new System.EventHandler(this.ChkOptionFilterOutliers_CheckedChanged);
             // 
             // label16
             // 
@@ -454,7 +445,7 @@ namespace Osc_v5
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(28, 201);
+            this.label1.Location = new System.Drawing.Point(28, 66);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(66, 13);
             this.label1.TabIndex = 40;
@@ -463,7 +454,7 @@ namespace Osc_v5
             // LblKSamplePerSec
             // 
             this.LblKSamplePerSec.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblKSamplePerSec.Location = new System.Drawing.Point(161, 200);
+            this.LblKSamplePerSec.Location = new System.Drawing.Point(143, 64);
             this.LblKSamplePerSec.Name = "LblKSamplePerSec";
             this.LblKSamplePerSec.Size = new System.Drawing.Size(82, 15);
             this.LblKSamplePerSec.TabIndex = 41;
@@ -567,13 +558,13 @@ namespace Osc_v5
             this.groupBox3.Controls.Add(this.label4);
             this.groupBox3.Location = new System.Drawing.Point(878, 548);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(279, 282);
+            this.groupBox3.Size = new System.Drawing.Size(279, 164);
             this.groupBox3.TabIndex = 50;
             this.groupBox3.TabStop = false;
             // 
             // label23
             // 
-            this.label23.Location = new System.Drawing.Point(132, 258);
+            this.label23.Location = new System.Drawing.Point(112, 132);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(82, 18);
             this.label23.TabIndex = 61;
@@ -588,7 +579,7 @@ namespace Osc_v5
             "2000",
             "5000",
             "Never"});
-            this.CmbStatRefresh.Location = new System.Drawing.Point(216, 255);
+            this.CmbStatRefresh.Location = new System.Drawing.Point(204, 129);
             this.CmbStatRefresh.Name = "CmbStatRefresh";
             this.CmbStatRefresh.Size = new System.Drawing.Size(57, 21);
             this.CmbStatRefresh.TabIndex = 65;
@@ -743,6 +734,42 @@ namespace Osc_v5
             this.RdButUSBMode_Standard.UseVisualStyleBackColor = true;
             this.RdButUSBMode_Standard.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Standard_CheckedChanged);
             // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.RdButTrSlopeDown);
+            this.groupBox4.Controls.Add(this.RdButTrSlopeUp);
+            this.groupBox4.ForeColor = System.Drawing.SystemColors.ActiveCaption;
+            this.groupBox4.Location = new System.Drawing.Point(770, 670);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(64, 80);
+            this.groupBox4.TabIndex = 71;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Trigger Slope";
+            // 
+            // RdButTrSlopeUp
+            // 
+            this.RdButTrSlopeUp.AutoSize = true;
+            this.RdButTrSlopeUp.Location = new System.Drawing.Point(8, 34);
+            this.RdButTrSlopeUp.Name = "RdButTrSlopeUp";
+            this.RdButTrSlopeUp.Size = new System.Drawing.Size(39, 17);
+            this.RdButTrSlopeUp.TabIndex = 0;
+            this.RdButTrSlopeUp.TabStop = true;
+            this.RdButTrSlopeUp.Text = "Up";
+            this.RdButTrSlopeUp.UseVisualStyleBackColor = true;
+            this.RdButTrSlopeUp.CheckedChanged += new System.EventHandler(this.RdButTrSlopeUp_CheckedChanged);
+            // 
+            // RdButTrSlopeDown
+            // 
+            this.RdButTrSlopeDown.AutoSize = true;
+            this.RdButTrSlopeDown.Location = new System.Drawing.Point(8, 57);
+            this.RdButTrSlopeDown.Name = "RdButTrSlopeDown";
+            this.RdButTrSlopeDown.Size = new System.Drawing.Size(53, 17);
+            this.RdButTrSlopeDown.TabIndex = 1;
+            this.RdButTrSlopeDown.TabStop = true;
+            this.RdButTrSlopeDown.Text = "Down";
+            this.RdButTrSlopeDown.UseVisualStyleBackColor = true;
+            this.RdButTrSlopeDown.CheckedChanged += new System.EventHandler(this.RdButTrSlopeDown_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -766,7 +793,6 @@ namespace Osc_v5
             this.Controls.Add(this.label18);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.pictureBox1);
-            this.Controls.Add(this.ChkOptionFilterOutliers);
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
@@ -785,6 +811,8 @@ namespace Osc_v5
             this.groupBox3.PerformLayout();
             this.GrpBoxUSBMode.ResumeLayout(false);
             this.GrpBoxUSBMode.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -812,7 +840,6 @@ namespace Osc_v5
         private Label label14;
         private Label label15;
         private Label LblTmrSuspended;
-        private CheckBox ChkOptionFilterOutliers;
         private Label label16;
         private MaskedTextBox TxtADC_Clock;
         private Label label1;
@@ -844,6 +871,9 @@ namespace Osc_v5
         private RadioButton RdButUSBMode_Roll;
         private RadioButton RdButUSBMode_Standard;
         private RadioButton RdButUSBMode_Memory;
+        private GroupBox groupBox4;
+        private RadioButton RdButTrSlopeDown;
+        private RadioButton RdButTrSlopeUp;
     }
 }
 

@@ -33,7 +33,7 @@ public:
   void enableInterrupt();
   size_t write(const uint8_t *buffer, size_t size);
   
-  static const uint32_t Iso_TransferSize = 420; //limit to 1020, 1020 / 4byte = 511 datasets = 2byte ADC reading + 2byte Tick data
+  static const uint32_t Iso_TransferSize = 500; //limit to 1020, 1020 / 4byte = 511 datasets = 2byte ADC reading + 2byte Tick data
   static const uint8_t NumberOfPackets = 50;
    __attribute__((__aligned__(4))) uint8_t WriteBuffer[Iso_TransferSize];
   uint8_t Iso_PckCode;  
