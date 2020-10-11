@@ -26,5 +26,5 @@ Next updates:
 - Introduce FFT transformation (fourier, frequency domain analysis)
 
 <br>
-<img height="700" src="https://github.com/abaelen/YetAnother-USB-Oscilloscope/tree/master/img/YetAnotherOscilloscope.png" />
+<img src="https://raw.githubusercontent.com/abaelen/YetAnother-USB-Oscilloscope/tree/master/img/YetAnotherOscilloscope.png?raw=true" />
 <br>
