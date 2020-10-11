@@ -1,6 +1,8 @@
 # YetAnother USB Oscilloscope
  USB oscilloscope featuring isochronous USB with openGL
 
+![YetAnother Logo](/img/YetAnotherOscilloscope.png)
+
 1) Rewritten the Arduino Isochronous code
 - Implemented the ADC capturing into the Isochronous event, to avoid time losses due to eventhandling .
 - Fixed some minor bugs (like memory alignment of write buffer)
@@ -25,5 +27,5 @@ Next updates:
 - Class definitions
 - Introduce FFT transformation (fourier, frequency domain analysis)
 
-![YetAnother Logo](/img/YetAnotherOscilloscope.png)
+
 <br>
