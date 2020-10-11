@@ -11,6 +11,10 @@ using System.Runtime;
 using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Security.Policy;
 
 
 namespace Osc_v5
@@ -22,17 +26,36 @@ namespace Osc_v5
 
         private class Number
         {
-            public float fNumber; //base number is always stored in milli unit
+            private float fNumber; //base number is always stored in milli unit
+
+            public float FNumber
+            {
+                get
+                {
+                    return fNumber;
+                }
+                set
+                {
+                    fNumber = value;
+                    if (this.TransformParamsChange != null)
+                        this.TransformParamsChange(this, new EventArgs());
+                }
+            }
+
+            public EventHandler TransformParamsChange;
+            public byte Id;
+
+
             public string gStr(string Dim)
             {
                 string Unit = ""; float Div = 0f; string Format = "";
-                if (Math.Abs(fNumber) >= 1000) { Unit = Dim; Div = 0.001f; }
-                if (Math.Abs(fNumber) < 1) { Unit = "u" + Dim; Div = 1000.0f; }
-                if (Math.Abs(fNumber) >= 1 && Math.Abs(fNumber) < 1000) { Unit = "m" + Dim; Div = 1; }
+                if (Math.Abs(FNumber) >= 1000) { Unit = Dim; Div = 0.001f; }
+                if (Math.Abs(FNumber) < 1) { Unit = "u" + Dim; Div = 1000.0f; }
+                if (Math.Abs(FNumber) >= 1 && Math.Abs(FNumber) < 1000) { Unit = "m" + Dim; Div = 1; }
 
-                if (Math.Abs((Math.Abs(fNumber * Div) * 1000 - Math.Round(Math.Abs(fNumber * Div)) * 1000)) > 1) Format = "0:0.000"; else Format = "0:0";
+                if (Math.Abs((Math.Abs(FNumber * Div) * 1000 - Math.Round(Math.Abs(FNumber * Div)) * 1000)) > 1) Format = "0:0.000"; else Format = "0:0";
 
-                return String.Format(@"" + "{" + Format + Unit + @"" + "}", fNumber * Div);
+                return String.Format(@"" + "{" + Format + Unit + @"" + "}", FNumber * Div);
             }
             public Number()
             {
@@ -88,215 +111,91 @@ namespace Osc_v5
 
         private Number[] V_axis = new Number[VSCALE + 1];
         private Number[] T_axis = new Number[TSCALE + 1];
-        private Number zeroVoltPoint = new Number();
+        private Number ZeroVoltPoint = new Number();
+        private Number ZeroTimePoint = new Number();
         private Number VoltDiv = new Number();
         private Number TimeDiv = new Number();
         private Number ADC_VRef = new Number();
         private Number ADC_BitRes = new Number();
         private Number ADC_Clock = new Number();
-        private Number ADC_Check_Pattern_Length = new Number();
-        private Number ADC_Measure_Length = new Number();
-        private Number ADC_Tick_Length = new Number();
-        private Number ADC_Check_Pattern = new Number();
 
         private Number msSleep = new Number();
         private float[] Stats = new float[10]; //FPS;dfx;dpx;V_Interval
 
-        const Int32 RINGBUFFER = 262144;
-        UInt32 NumberOfSamples = 1024;
-        UInt32 IsochTransferCount = 0;
 
-        UInt32[] ADC_Reading = new UInt32[RINGBUFFER+1];
-        UInt32[] ADC_Tick = new UInt32[RINGBUFFER+1];
-        Int32 RB_U = 0;
-        Int32 RB_L = 1 - (0 + 1); //RB_U=0
-        Int32 RB_Size = RINGBUFFER;
-        //int ADC_Res = 256;
-
-        byte[] USB_readbuffer = new byte[RINGBUFFER*sizeof(Int32)/sizeof(byte)]; //Buffer will only be used up to sizeof which is dynamic
-                    //Buffer size needs to be multiplied towards the size of the ADC_Reading buffer
-        Int32 Sizeof_USB_readbuffer = 4096;
-        private int[] USB_Results;// //memory allocated afte acquiring sizeof from DLL
-        private long[] USB_hResults; //memory allocated afte acquiring sizeof from DLL
-        UInt16[] Sizeof_USB_Result= new UInt16[1];
+        UInt16[] Sizeof_USB_Result = new UInt16[1];
         UInt16[] Sizeof_USB_hResult = new UInt16[1];
         UInt16[] USB_Device_Vendor = new ushort[1];
         UInt16[] USB_Device_Product = new ushort[1];
         UInt16[] USB_Device_bcd = new ushort[1];
 
-
+        public byte USB2_Mode = 1;
         bool OptionFilterOutliers = true;
-        bool ContinueToCollectAndSendData = true;
-        double TmrCollectAndSend=0;
 
-        Task TskOpenGL;// = new Task(() => NativeMethods.OGL_Window_Init());
-        Task TskCollectAndSendData;// = new Task(() => CollectAndSendData());
-        Task TskUSB;
-        //lblFPS.Text = FPS.ToString("00.0");
         public Form1()
         {
             InitializeComponent();
             U_InitializeComponent();
-            TskOpenGL = new Task(() => NativeMethods.OGL_Window_Init());
-            TskCollectAndSendData = new Task(() => CollectAndSendData());
-            TskUSB = new Task(() => NativeMethods.USB_Init());
+
             Shown += Form1_Shown;
             Move += Form1_Move;
         }
 
         private void Form1_Move(Object sender, EventArgs e)
         {
-            NativeMethods.OGL_Window_SetPos(this.Location.X + 9 + this.panel2.Location.X, this.Location.Y + 33 + this.panel2.Location.Y);
+            //NativeMethods.OGL_Window_SetPos(this.Location.X + 9 + this.panel2.Location.X, this.Location.Y + 33 + this.panel2.Location.Y);
         }
         private void Form1_Shown(object sender, EventArgs e)
         {
             //Init OpenGL window - needs to be here as when window is disposed it clears this Init as well.
-            TskOpenGL.Start();
-        }
-
-        private void SendTransformParams()
-        {
-            bool result = false;
-
-            UInt16 _ADC_bitres; UInt16 _ADC_Vref; UInt16 _zeroVolt; UInt16 _VoltDiv; float _TimeDiv; UInt32 _ADC_Clock;
-            bool optionExtrapolated; float _msSleep; bool optionFilterOutliers;
-
-            if (ADC_BitRes.fNumber==0) { ADC_BitRes.fNumber = ADC_BitRes.gFlt(TxtADC_Res.Text); }
-            if (ADC_VRef.fNumber == 0) { ADC_VRef.fNumber = ADC_VRef.gFlt(TxtADC_Vref.Text); }
-            if (zeroVoltPoint.fNumber == 0) { zeroVoltPoint.fNumber= V_axis[(UInt16)(Lbl_V_Axis.GetUpperBound(0) + 1) / 2].fNumber; }
-            if (VoltDiv.fNumber == 0) { VoltDiv.fNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text); }
-            if (TimeDiv.fNumber == 0) { TimeDiv.fNumber = TimeDiv.gFlt(CmbTimeDiv.SelectedItem.ToString()); }
-            if (ADC_Clock.fNumber == 0) { ADC_Clock.fNumber = ADC_Clock.gFlt(TxtADC_Clock.Text); }
-            if (msSleep.fNumber == 0) { msSleep.fNumber = msSleep.gFlt("inf"); }
-
-            _ADC_bitres = (UInt16)ADC_BitRes.fNumber;
-            _ADC_Vref = (UInt16) ADC_VRef.fNumber;
-            _zeroVolt = (UInt16) zeroVoltPoint.fNumber;
-            _VoltDiv = (UInt16) VoltDiv.fNumber;
-            _TimeDiv = TimeDiv.fNumber;
-            _ADC_Clock = (UInt32)ADC_Clock.fNumber;
-            _msSleep = (float) msSleep.fNumber;
-
-            optionExtrapolated = ChkoptionExtrapolated.Checked;
-            optionFilterOutliers = ChkOptionFilterOutliers.Checked;
-
-            result = NativeMethods.SendTransformParams(_ADC_bitres, _ADC_Vref, _zeroVolt, _VoltDiv, _TimeDiv, _ADC_Clock , optionExtrapolated, _msSleep, optionFilterOutliers) ;
-            if (result == false)
+            Task TskOpenGL = Task.Run(() =>
             {
-                var msgresult = MessageBox.Show("Could not update graph", "error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+                USB2_VertexBuffer[0] = new float[USB2_Win_W * USB2_NumberOfPointsPerTick * 2]; //actual data
+                USB2_VertexBuffer[1] = new float[USB2_Win_W * USB2_NumberOfPointsPerTick * 2]; //Number of measurements
+                USB2_VertexBuffer[2] = new float[USB2_Win_W * USB2_NumberOfPointsPerTick * 2]; //Average of elements
+                Array.Clear(USB2_VertexBuffer[0], 0, USB2_VertexBuffer[0].Length);
+                Array.Clear(USB2_VertexBuffer[1], 0, USB2_VertexBuffer[1].Length);
+                Array.Clear(USB2_VertexBuffer[2], 0, USB2_VertexBuffer[2].Length);
+
+                Array.Clear(USB2_VertexBufferTrigger, 0, USB2_VertexBufferTrigger.Length);
+
+                OGL_Screen_Status.i2_ConnectPtrs();
+                OGL_Screen_Status.i2_SetAll(0,this);
+                OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
+                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0);
+
+                NativeMethods.OGL_Window_Init(USB2_Win_W, USB2_VertexBuffer[2], (UInt32)USB2_VertexBuffer[2].Length, USB2_VertexBufferTrigger, (UInt32) USB2_VertexBufferTrigger.Length);
+
+            });
 
         }
-        private void CollectAndSendData()
+
+         private void U_InitializeComponent()
         {
-            Stopwatch Watch = new Stopwatch();
-            if (NativeMethods.USB_ReadyToRead() == true)
-            { //Keep loop going in waiting mode // Is a switch
-                NativeMethods.USB_SetBeginReading(true); //Get USB in active mode
 
-                while (ContinueToCollectAndSendData == true) //is a switch
-                {
-                    //COLLECT
-                    if (NativeMethods.USB_GetEndReading() == true)
-                    { // Wait for signal data is read from ADC, keep loop moving
+            //Init transform paramaters
 
-                        RB_L = (RB_U + 1 > RB_Size) ? 1 : RB_U + 1; //r(RB_U + 1, RB_Size, 0);
-                        RB_U = (RB_U + (Int32)NumberOfSamples > RB_Size) ? (Int32)NumberOfSamples : RB_U + (Int32)NumberOfSamples; //r(RB_L + NumberOfSamples - 1, RB_Size, 0);
+            ZeroVoltPoint.TransformParamsChange += this.SetTransformParams;
+            VoltDiv.TransformParamsChange += this.SetTransformParams;
+            TimeDiv.TransformParamsChange += this.SetTransformParams;
+            ADC_VRef.TransformParamsChange += this.SetTransformParams;
+            ADC_BitRes.TransformParamsChange += this.SetTransformParams;
+            ADC_Clock.TransformParamsChange += this.SetTransformParams;
 
-                        NativeMethods.USB_ReadbufferTransfered(USB_readbuffer, ADC_Reading, ADC_Tick, RB_L,RB_U); //Start transferring data
-                        NativeMethods.USB_SetReadbufferTransfered();
-                        while (!NativeMethods.DataProcessed()) ;  // is a push //Wait for the data to have been displayed --> ASSUMES WE WANT TO ALWAYS DISPLAY ALL!!
-                        NativeMethods.SetDataProcessed(false);
-                        Watch.Start();
+            ZeroVoltPoint.Id = 1;
+            VoltDiv.Id = 2;
+            TimeDiv.Id = 3;
+            ADC_VRef.Id = 4;
+            ADC_BitRes.Id = 5;
+            ADC_Clock.Id = 6;
 
-                        NativeMethods.SetSuspended(false);
-                        while (!NativeMethods.SendData(ADC_Reading, ADC_Tick, RB_L, RB_U)) ; //Communication requires send and retrieval of succesfull retrieval --> proven necessary certainly at start up
-                        NativeMethods.SetReadingLock(false);
-
-
-                        Watch.Stop(); TmrCollectAndSend = (double)Watch.ElapsedTicks / Stopwatch.Frequency; //Measure idlde state
-                    }
-                }
-            }
-            else { NativeMethods.SetSuspended(true); }
-        }
-        private bool USB_ReportState()
-        {
-            while (!NativeMethods.USB_ReadyToReportState()) ;
-            NativeMethods.USB_Sizeof_USB_Result(Sizeof_USB_Result, Sizeof_USB_hResult);
-            USB_Results = new int[Sizeof_USB_Result[0]];
-            USB_hResults = new long[Sizeof_USB_hResult[0]];
-
-            NativeMethods.USB_GetState(USB_Results, USB_hResults, USB_Device_Vendor, USB_Device_Product, USB_Device_bcd);
-
-            TxtUSB_State.Clear();
-            if (Convert.ToString(USB_hResults[0], 2).Substring(0, 1) == "1")
-            {  //Open Device
-                if (USB_Results[18] == 1)
-                {  //no Device 
-                    TxtUSB_State.AppendText("Device not connected or driver not installed.");
-                    goto Error;
-                }
-                else
-                {
-                    TxtUSB_State.AppendText("\r\n Failed looking for device, HRESULT 0x");
-                    TxtUSB_State.AppendText(Convert.ToString(USB_hResults[0], 16));
-                    goto Error;
-                }
-            } else
-            {
-                LblUSBConnected.Text = "Connected to device: VID_" + USB_Device_Vendor[0].ToString() + " PID_" + USB_Device_Product[0].ToString() + "; bcdUSB " + USB_Device_bcd[0].ToString();
-                TxtUSB_State.AppendText("Device connected"); //TO DO add device name
-            }
-            if (USB_Results[1] == 0) { TxtUSB_State.AppendText("\r\n Could not get descriptor."); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Device descriptor received");}
-            if (USB_Results[2] == 0) { TxtUSB_State.AppendText("\r\n Could not get interface."); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Device interface received"); }
-            if (USB_Results[3] == 0) { TxtUSB_State.AppendText("\r\n Failed to get USB pipe. "); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n USB pipe identified"); }
-            if (USB_Results[4] == 0) { TxtUSB_State.AppendText("\r\n Interval information or Maximum bytes interval invalid. "); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Interval information received"); }
-            //if (USB_Results[5] == 0) { TxtUSB_State.AppendText("\r\n Read Transfer failed. "); goto Error; }
-            //else { TxtUSB_State.AppendText("\r\n Initiating read transfer"); } Depends on the starting of USB while USB starting is waiting for state (circular dep.)
-            if (USB_Results[6] == 0) { TxtUSB_State.AppendText("\r\n Readbuffer not set at end of a frame. "); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Readbuffer accepted"); }
-            if (USB_Results[7] == 0) { TxtUSB_State.AppendText("\r\n Could not allocate memory. "); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Memory allocated"); }
-            if (USB_Results[8] == 0) { TxtUSB_State.AppendText("\r\n Could not register isoch buffer. "); goto Error; }
-            else {   TxtUSB_State.AppendText("\r\n Isoch buffer registered"); }
-            if (USB_Results[9] == 0) { TxtUSB_State.AppendText("\r\n Could not reset pipe. "); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Pipe resetted"); }
-            if (USB_Results[10] == 0) { TxtUSB_State.AppendText("\r\n Could not set overlapped result. "); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Overlapped result set"); }
-            if (USB_Results[11] == 0) { TxtUSB_State.AppendText("\r\n Could not get framenumber. "); goto Error; }
-            else { TxtUSB_State.AppendText("\r\n Framenumber received"); }
-            //if (USB_Results[12] == 0) { TxtUSB_State.AppendText("\r\n Could not read isoch pipe. "); goto Error; }
-            //else { TxtUSB_State.AppendText("\r\n Isoch pipe read"); } Circular reference
-            //if (USB_Results[13] == 0) { TxtUSB_State.AppendText("\r\n Could not get overlapped result. "); goto Error; }
-            //else { TxtUSB_State.AppendText("\r\n Overlapped result received"); } Circular reference
-            //if (USB_Results[14] == 0) { TxtUSB_State.AppendText("\r\n Could not complete transfer. "); goto Error; }
-            //else { TxtUSB_State.AppendText("\r\n Transfer completed"); } Circular reference
-            //if (USB_Results[15] == 0) { TxtUSB_State.AppendText("\r\n Could not unregister isoch buffer. "); goto Error; }
-            //else { TxtUSB_State.AppendText("\r\n Isoch buffer unregistered"); } Circular reference
-            if (USB_Results[16] == 0) { TxtUSB_State.AppendText("\r\n Could not find pipe. "); goto Error; }
-            else {  TxtUSB_State.AppendText("\r\n USB Pipe found"); }
-            //if (USB_Results[17] == 0) { TxtUSB_State.AppendText("\r\n Failed to start read. "); goto Error; }
-            //else { TxtUSB_State.AppendText("\r\n Start reading"); } Circular reference
-            return true;
-
-        Error:
-            return false;
-        }
-
-        private void U_InitializeComponent()
-        {
             //Init VoltageDivider container
-            VoltDiv.fNumber = 1000.0f;
+            VoltDiv.FNumber = 1000.0f;
             //Init VoltageAxis container
             for (int i = 0; i <= this.V_axis.GetUpperBound(0); i++) //initiatization of label text on load will not allow to overwrite
             {
                 this.V_axis[i] = new Number();
-                this.V_axis[i].fNumber = (i - this.V_axis.GetUpperBound(0) / 2) * VoltDiv.fNumber;
+                this.V_axis[i].FNumber = (i - this.V_axis.GetUpperBound(0) / 2) * VoltDiv.FNumber;
             }
             //Init VoltageAxis control
             for (int i = 0; i < this.Lbl_V_Axis.GetUpperBound(0) + 1; i++)
@@ -317,16 +216,18 @@ namespace Osc_v5
                 }
                 this.panel1.Controls.Add(this.Lbl_V_Axis[i]);
                 this.Lbl_V_Axis[i].Text = this.V_axis[i].gStr("V");
+                this.Lbl_V_Axis[i].BringToFront();
                 this.Lbl_V_Axis[i].Show();
             }
             //Init TimeDivider container
-            TimeDiv.fNumber = 1000.0f;
+            TimeDiv.FNumber = 1000.0f;
             //Init TimeAxis container
-            for (int i = 0; i <= this.T_axis.GetUpperBound(0); i++) //initiatization of label text on load will not allow to overwrite
+            for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
             {
-                this.T_axis[i] = new Number();
-                this.T_axis[i].fNumber = (i - this.T_axis.GetUpperBound(0) / 2) * TimeDiv.fNumber;
+                if (this.T_axis[i] == null) this.T_axis[i] = new Number();
+                this.T_axis[i].FNumber = 0 + (i - this.Lbl_T_Axis.GetUpperBound(0)) * TimeDiv.FNumber;
             }
+            ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
             //Init TimeAxis control
             for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
             {
@@ -341,7 +242,8 @@ namespace Osc_v5
                 this.Lbl_T_Axis[i].TabIndex = 23;
                 this.Lbl_T_Axis[i].TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
                 this.panel1.Controls.Add(this.Lbl_T_Axis[i]);
-                this.Lbl_T_Axis[i].Text = this.V_axis[i].gStr("s");
+                this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
+                this.Lbl_T_Axis[i].BringToFront();
                 this.Lbl_T_Axis[i].Show();
             }
             // Init VoltageDivider control
@@ -350,34 +252,34 @@ namespace Osc_v5
             this.CmbTimeDiv.Text = TimeDiv.gStr("s");
             //Init PFS control
             this.CmbmsSleep.SelectedIndex = 0;
-            //Init Ringbuffer control
-            this.CmbRB_Size.Text = "1024";
-            NumberOfSamples = (UInt32)Convert.ToInt32(CmbRB_Size.Text.Trim((char)8236), 10);
-            RB_U = (Int32)NumberOfSamples - (Int32)NumberOfSamples; //Necessary to have at first run new data input on 0
-            RB_L = 1 - (RB_U + 1);
-            //Init ADC communication pattern
-            TxtADCCheckPatternLength.Text = "7bit";
-            ADC_Check_Pattern_Length.fNumber = ADC_Check_Pattern.gFlt(TxtADCCheckPatternLength.Text);
-            TxtADCMeasureLength.Text = "12bit";
-            ADC_Measure_Length.fNumber = ADC_Measure_Length.gFlt(TxtADCMeasureLength.Text);
-            TxtADCTickLength.Text = "12bit";
-            ADC_Tick_Length.fNumber = ADC_Tick_Length.gFlt(TxtADCTickLength.Text);
-            TxtADCCheckPattern.Text = "055";
-            ADC_Check_Pattern.fNumber = Convert.ToUInt32(TxtADCCheckPattern.Text, 16);
+            //Init Bit resolution control
+            ADC_BitRes.FNumber = ADC_BitRes.gFlt(TxtADC_Res.Text);
+            //Init ADC clock control
+            ADC_Clock.FNumber = ADC_Clock.gFlt(TxtADC_Clock.Text);
+            //ADC_Vref control
+            ADC_VRef.FNumber = ADC_VRef.gFlt(TxtADC_Vref.Text);
+            //Zero Volt point number
+            ZeroVoltPoint.FNumber = V_axis[(UInt16)(Lbl_V_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+            //Zero Time point number
+            ZeroTimePoint.FNumber = T_axis[(UInt16)(Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+            //USB_Mode default
+            USB2_Mode = 1;
+            //Extrapolate default
+
             TmrRefresh.Enabled = true;
             //Show Form
             this.Show();
         }
         private void ZeroVolt_Click(object sender, EventArgs e)
         {
-            VoltDiv.fNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
+            VoltDiv.FNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
             for (int i = 0; i < this.Lbl_V_Axis.GetUpperBound(0) + 1; i++)
             {
-                this.V_axis[i].fNumber = (i - this.Lbl_V_Axis.GetUpperBound(0) / 2) * VoltDiv.fNumber;
+                this.V_axis[i].FNumber = (i - this.Lbl_V_Axis.GetUpperBound(0) / 2) * VoltDiv.FNumber;
                 this.Lbl_V_Axis[i].Text = this.V_axis[i].gStr("V");
             }
-            zeroVoltPoint.fNumber = this.V_axis[(UInt16)(this.Lbl_V_Axis.GetUpperBound(0) + 1) / 2].fNumber;
-            SendTransformParams();
+            ZeroVoltPoint.FNumber = this.V_axis[(UInt16)(this.Lbl_V_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+
         }
         private void SetToZero_Click(object sender, EventArgs e)
         {
@@ -386,27 +288,27 @@ namespace Osc_v5
         }
         private void ButVUp_Click(object sender, EventArgs e)
         {
-            VoltDiv.fNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
-            float Offset = 10f;
+            VoltDiv.FNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
+            float Offset = VoltDiv.FNumber;//10f;
             for (int i = 0; i < this.Lbl_V_Axis.GetUpperBound(0) + 1; i++)
             {
-                this.V_axis[i].fNumber = this.V_axis[i].fNumber + Offset;
+                this.V_axis[i].FNumber = this.V_axis[i].FNumber + Offset;
                 this.Lbl_V_Axis[i].Text = this.V_axis[i].gStr("V");
             }
-            zeroVoltPoint.fNumber = this.V_axis[(UInt16) (this.Lbl_V_Axis.GetUpperBound(0) + 1)/2].fNumber;
-            SendTransformParams();
+            ZeroVoltPoint.FNumber = this.V_axis[(UInt16)(this.Lbl_V_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+
         }
         private void ButVDown_Click(object sender, EventArgs e)
         {
-            VoltDiv.fNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
-            float Offset = -10f;
-                for (int i = 0; i < this.Lbl_V_Axis.GetUpperBound(0) + 1; i++)
-                {
-                    this.V_axis[i].fNumber = this.V_axis[i].fNumber + Offset;
-                    this.Lbl_V_Axis[i].Text = this.V_axis[i].gStr("V");
-                }
-            zeroVoltPoint.fNumber = this.V_axis[(UInt16)(this.Lbl_V_Axis.GetUpperBound(0) + 1) / 2].fNumber;
-            SendTransformParams();
+            VoltDiv.FNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
+            float Offset = -VoltDiv.FNumber;//-10f;
+            for (int i = 0; i < this.Lbl_V_Axis.GetUpperBound(0) + 1; i++)
+            {
+                this.V_axis[i].FNumber = this.V_axis[i].FNumber + Offset;
+                this.Lbl_V_Axis[i].Text = this.V_axis[i].gStr("V");
+            }
+            ZeroVoltPoint.FNumber = this.V_axis[(UInt16)(this.Lbl_V_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+
         }
         private void TxtZeroVolt_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -414,15 +316,15 @@ namespace Osc_v5
             {
                 case (char)13: //Return
                     TxtZeroVolt.Visible = false;
-                    
-                    zeroVoltPoint.fNumber = zeroVoltPoint.gFlt(TxtZeroVolt.Text);
-                    VoltDiv.fNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
+
+                    ZeroVoltPoint.FNumber = ZeroVoltPoint.gFlt(TxtZeroVolt.Text);
+                    VoltDiv.FNumber = VoltDiv.gFlt(this.CmbVoltDiv.Text);
                     for (int i = 0; i < this.Lbl_V_Axis.GetUpperBound(0) + 1; i++)
                     {
-                        this.V_axis[i].fNumber = (i - this.Lbl_V_Axis.GetUpperBound(0) / 2) * VoltDiv.fNumber+zeroVoltPoint.fNumber;
+                        this.V_axis[i].FNumber = (i - this.Lbl_V_Axis.GetUpperBound(0) / 2) * VoltDiv.FNumber + ZeroVoltPoint.FNumber;
                         this.Lbl_V_Axis[i].Text = this.V_axis[i].gStr("V");
                     }
-                    SendTransformParams();
+
                     break;
                 case (char)8: //Backspace
                     break;
@@ -434,10 +336,10 @@ namespace Osc_v5
                     if (Input[Input.Length - 1] != 'V') { Input += 'V'; }
                     //string allValidChar = "-+0123456789mV,.";// + (char)8 + (char)127;
                     string firstValidChar = "-+0123456789";// + (char)8 + (char)127;
-                    string secondValidChar = "0123456789mV,.";
+                    string secondValidChar = "0123456789umV,.";
                     string bodyValidChar = "0123456789,.";
-                    string secondlastValidChar = "0123456789,.m";
-                    string lastValidChar = "mV";
+                    string secondlastValidChar = "0123456789,.um";
+                    string lastValidChar = "umV";
                     char[] InputArr = Input.ToCharArray();
                     int Up = InputArr.GetUpperBound(0);
                     if (Up > -1 && firstValidChar.IndexOf(InputArr[0]) == -1) { InputArr[0] = '_'; }
@@ -462,180 +364,73 @@ namespace Osc_v5
         }
         private void CmbVoltDiv_SelectedValueChanged(object sender, EventArgs e)
         {
-            VoltDiv.fNumber = VoltDiv.gFlt(CmbVoltDiv.SelectedItem.ToString());
+            VoltDiv.FNumber = VoltDiv.gFlt(CmbVoltDiv.SelectedItem.ToString());
             for (int i = 0; i < this.Lbl_V_Axis.GetUpperBound(0) + 1; i++)
             {
                 if (this.V_axis[i] == null) this.V_axis[i] = new Number();
-                this.V_axis[i].fNumber = zeroVoltPoint.fNumber+(i - this.Lbl_V_Axis.GetUpperBound(0) / 2) * VoltDiv.fNumber;
+                this.V_axis[i].FNumber = ZeroVoltPoint.FNumber + (i - this.Lbl_V_Axis.GetUpperBound(0) / 2) * VoltDiv.FNumber;
                 this.Lbl_V_Axis[i].Text = this.V_axis[i].gStr("V");
             }
-            SendTransformParams();
+            ZeroVoltPoint.FNumber = this.V_axis[(UInt16)(this.Lbl_V_Axis.GetUpperBound(0) + 1) / 2].FNumber;
         }
         private void CmbTimeDiv_SelectedValueChanged(object sender, EventArgs e)
         {
-            TimeDiv.fNumber = TimeDiv.gFlt(CmbTimeDiv.SelectedItem.ToString());
+            //TimeDiv.FNumber = TimeDiv.gFlt(CmbTimeDiv.SelectedItem.ToString());
+            TimeDiv.FNumber = TimeDiv.gFlt(CmbTimeDiv.SelectedItem.ToString());
             for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
             {
                 if (this.T_axis[i] == null) this.T_axis[i] = new Number();
-                this.T_axis[i].fNumber = 0 + (i - this.Lbl_T_Axis.GetUpperBound(0)) * TimeDiv.fNumber;
+                this.T_axis[i].FNumber = 0 + (i - this.Lbl_T_Axis.GetUpperBound(0)) * TimeDiv.FNumber;
                 this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
             }
-            SendTransformParams();
+            ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
         }
-        private void ButStartStopADC_Click(object sender, EventArgs e)
-        {
-            if (ButStartStopADC.Text == "Connect to device") {
-                TskUSB.Start();
-                if (USB_ReportState()==true)
-                {
-                    CmbRB_Size.Enabled = false;
-                    TxtADCCheckPatternLength.Enabled = false;
-                    TxtADCCheckPattern.Enabled = false;
-                    TxtADCMeasureLength.Enabled = false;
-                    TxtADCTickLength.Enabled = false;
-                    ContinueToCollectAndSendData = true;
-                    //Init USB params in front of CollectandSendData (cannt be integrated as multithreading exception would occur)
-                    NativeMethods.USB_Set_Isoch_Transfer((UInt32)NumberOfSamples, (UInt32)ADC_Check_Pattern.fNumber, (UInt32)ADC_Check_Pattern_Length.fNumber, (UInt32)ADC_Measure_Length.fNumber, (UInt32)ADC_Tick_Length.fNumber);
-                    IsochTransferCount = NativeMethods.USB_GetIsochTransferCount();
-                    LblUSBTransfers.Text = IsochTransferCount.ToString(); //elevate the issue of multi threaded call because of compiler optimization
-                    TskCollectAndSendData.Start();
-                    
-                    ButStartStopADC.Text = "Disconnect from device";
-                } else
-                {
-                    NativeMethods.USB_SetCloseRequest();
-                    TskUSB.Wait();
-                    TskUSB.Dispose();
-                    TskUSB = new Task(() => NativeMethods.USB_Init());
-                }
-
-            } else
-            {
-                
-                NativeMethods.SetSuspended(true);
-                ContinueToCollectAndSendData = false;
-                NativeMethods.SetReadingLock(false);
-                NativeMethods.GetStats(Stats);
-
-                
-                lblFPS.Text = Stats[0].ToString("#0.#ms");
-                Lbldfx.Text = Stats[2].ToString("#0.####%");
-                Lbldpx.Text = Stats[1].ToString("#0.##px");
-                LblADC_Res_V.Text = Stats[3].ToString("#0.##mV");
-                LblTmrBuildScreen.Text = Stats[4].ToString("#0.####ms");
-                LblTmrSuspended.Text = Stats[5].ToString("#0.####ms");
-                LblTmrDrawScreen.Text = Stats[6].ToString("#0.####ms");
-                LblTmrTransfdata.Text = Stats[7].ToString("#0.####ms");
-                LblTmrWaitfordata.Text = Stats[8].ToString("#0.####ms");
-                LblKSamplePerSec.Text = Stats[9].ToString("#0.###kSps");
-
-
-                TskCollectAndSendData.Wait();
-                TskCollectAndSendData.Dispose();
-                TskCollectAndSendData = new Task(() => CollectAndSendData());
-                NativeMethods.USB_SetCloseRequest(); //first set closure request than give signal of Readbuffertransfered to allow closure
-                NativeMethods.USB_SetReadbufferTransfered(); //to allow USB closure to continue in case not last transfer occured
-
-                TskUSB.Wait();
-                TskUSB.Dispose();
-                TskUSB = new Task(() => NativeMethods.USB_Init());
-                CmbRB_Size.Enabled = true;
-                TxtADCCheckPatternLength.Enabled = true;
-                TxtADCCheckPattern.Enabled = true;
-                TxtADCMeasureLength.Enabled = true;
-                TxtADCTickLength.Enabled = true;
-
-                LblUSBConnected.Text = "Disconnected from device";
-                ButStartStopADC.Text = "Connect to device";
-            }
-        }
-
         private void TxtADC_Clock_Leave(object sender, EventArgs e)
         {
-            ADC_Clock.fNumber = ADC_Clock.gFlt(TxtADC_Clock.Text);
+            ADC_Clock.FNumber = ADC_Clock.gFlt(TxtADC_Clock.Text);
 
-            SendTransformParams();
         }
         private void TxtADC_Vref_Leave(object sender, EventArgs e)
         {
-            ADC_VRef.fNumber = ADC_VRef.gFlt(TxtADC_Vref.Text);
-            SendTransformParams();
+            ADC_VRef.FNumber = ADC_VRef.gFlt(TxtADC_Vref.Text);
+
         }
         private void TxtADC_Res_Leave(object sender, EventArgs e)
         {
-            ADC_BitRes.fNumber = ADC_BitRes.gFlt(TxtADC_Res.Text);
-            SendTransformParams();
-        }
-        private void CmbRB_Size_SelectionChangeCommitted(object sender, EventArgs e)
-        {
-            string TxtRB_size;
-            TxtRB_size = CmbRB_Size.Text.Trim((char)8236);
-            NumberOfSamples = (UInt32) Convert.ToInt32(TxtRB_size, 10);
-            RB_U = (Int32) NumberOfSamples - (Int32) NumberOfSamples; //Necessary to have at first run new data input on 0
-            RB_L = 1 - (RB_U + 1);
-        }
-        private void TxtADCCheckPatternLength_Leave(object sender, EventArgs e)
-        {
-            ADC_Check_Pattern_Length.fNumber = ADC_Check_Pattern.gFlt(TxtADCCheckPatternLength.Text);
-        }
-        private void TxtADCMeasureLength_Leave(object sender, EventArgs e)
-        {
-            ADC_Measure_Length.fNumber = ADC_Measure_Length.gFlt(TxtADCMeasureLength.Text);
-            if (ADC_Measure_Length.fNumber < ADC_BitRes.fNumber)
-            {
-                MessageBox.Show("ADC resolution higher than bit string returned from device", "Communication error setting", MessageBoxButtons.OK,MessageBoxIcon.Error);
-                TxtADCMeasureLength.Text = "12bit";
-                ADC_Measure_Length.fNumber = ADC_Measure_Length.gFlt(TxtADCMeasureLength.Text);
-            }
-            ADC_Measure_Length.fNumber = ADC_Measure_Length.gFlt(TxtADCMeasureLength.Text);
-        }
-        private void TxtADCTickLength_Leave(object sender, EventArgs e)
-        {
-            ADC_Tick_Length.fNumber = ADC_Tick_Length.gFlt(TxtADCTickLength.Text);
-        }
-        private void TxtADCCheckPattern_Leave(object sender, EventArgs e)
-        {
-            try
-            {
-                ADC_Check_Pattern.fNumber = Convert.ToUInt32(TxtADCCheckPattern.Text, 16);
-            }
-            catch (System.FormatException)
-            {
-                TxtADCCheckPattern.Text = "055"; 
-            }
-        }
-        private void ChkoptionExtrapolated_CheckedChanged(object sender, EventArgs e)
-        {
-            SendTransformParams();
+            ADC_BitRes.FNumber = ADC_BitRes.gFlt(TxtADC_Res.Text);
+
         }
 
-        private void CmbmsSleep_SelectedIndexChanged(object sender, EventArgs e)
+         private void CmbmsSleep_SelectedIndexChanged(object sender, EventArgs e)
         {
-            msSleep.fNumber = msSleep.gFlt(CmbmsSleep.SelectedItem.ToString()); //Entry is in FPS to be converted to ms!
-            msSleep.fNumber = (msSleep.fNumber==-999)? -999: 1000.0f / msSleep.fNumber;
-            SendTransformParams();
+            msSleep.FNumber = msSleep.gFlt(CmbmsSleep.SelectedItem.ToString()); //Entry is in FPS to be converted to ms!
+            msSleep.FNumber = (msSleep.FNumber == -999) ? -999 : 1000.0f / msSleep.FNumber;
+
         }
 
         private void ChkOptionFilterOutliers_CheckedChanged(object sender, EventArgs e)
         {
             OptionFilterOutliers = ChkOptionFilterOutliers.Checked;
-            SendTransformParams();
+
         }
 
         private void TmrRefresh_Tick(object sender, EventArgs e)
         {
-            NativeMethods.GetStats(Stats);
+            float i2_USB2_OGL_Window_Framesfl;
+            unsafe
+            {
+                i2_USB2_OGL_Window_Framesfl = *((float*)OGL_Screen_Status.i2_USB2_OGL_Window_Frames.ToPointer());
+            }
 
-            lblFPS.Text = Stats[0].ToString("#0.#ms");
-            Lbldfx.Text = Stats[2].ToString("#0.####%");
-            Lbldpx.Text = Stats[1].ToString("#0.##px");
+            lblFPS.Text = i2_USB2_OGL_Window_Framesfl.ToString("#0.#ms");
+            
             LblADC_Res_V.Text = Stats[3].ToString("#0.##mV");
-            LblTmrBuildScreen.Text = Stats[4].ToString("#0.####ms");
             LblTmrSuspended.Text = Stats[5].ToString("#0.####ms");
-            LblTmrDrawScreen.Text = Stats[6].ToString("#0.####ms");
-            LblTmrTransfdata.Text = Stats[7].ToString("#0.####ms");
-            LblTmrWaitfordata.Text = Stats[8].ToString("#0.####ms");
             LblKSamplePerSec.Text = Stats[9].ToString("#0.###kSps");
+
+            USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
+            USB2_Device_Status.i2_UpdateChkList(ChkListUSBState);
+
 
         }
 
@@ -644,10 +439,1483 @@ namespace Osc_v5
             if (CmbStatRefresh.Text == "Never")
             {
                 TmrRefresh.Enabled = false;
-            } else
+            }
+            else
             {
                 TmrRefresh.Interval = Convert.ToInt32(CmbStatRefresh.Text);
             }
         }
+
+        public const UInt32 USB2_BufferSize8 = USB2_NumberOfPackets * USB2_TransferSize; //limit Buffersize to 511 x (2byte ADC reading + 2byte Tick data) x 3 packets
+        public const UInt16 USB2_TransferSize = 420;
+        public const byte USB2_NumberOfPackets = 50;
+        public const UInt32 USB2_Win_W = 682;
+        public const byte USB2_Win_Div = 10;
+        public const byte USB2_MillisecondsPerTransfer = 55;
+        public const byte USB2_SecondsOfBuffer = 10;
+        public const byte USB2_NumberOfPointsPerTick = 3;
+        public static UInt16[] USB2_Buffer = new UInt16[(UInt32)Math.Ceiling((double)(USB2_SecondsOfBuffer * 1000 / USB2_MillisecondsPerTransfer * USB2_NumberOfPackets * USB2_TransferSize / 2 * 2))];//double buffer needed to ensure full screen can be drawn @10secs.
+        public Int32 USB2_BufferPosition16 = (Int32)Math.Ceiling((double)(USB2_SecondsOfBuffer * 1000 / USB2_MillisecondsPerTransfer * USB2_NumberOfPackets * USB2_TransferSize / 2));
+        public Int32 USB2_BufferIterations = 0; //For performance reasons, ie. to avoid during first iteration searches take through the whole buffer
+        public Int32 USB2_NumberOfReads = 0;
+        
+
+        public static float[][] USB2_VertexBuffer = new float[3][];
+        public static float[] USB2_VertexBufferTrigger = new float[2 * 2 * 2]; //Two lines, of two dimension tupple
+
+        Stopwatch USB2_Watch = new Stopwatch();
+        double[] USB2_WatchData = new double[10000];
+        UInt32 USB2_WatchDataCounter = 0;
+
+        
+
+        public class _OGL_Screen_Status
+        {
+            ~_OGL_Screen_Status()
+            {
+                Marshal.FreeHGlobal(i2_USB2_OGL_Suspended);
+                Marshal.FreeHGlobal(i2_USB2_OGL_ScreenDrawn);
+                Marshal.FreeHGlobal(i2_USB2_OGL_Window_Frames);
+                Marshal.FreeHGlobal(i2_USB2_OGL_Extrapolate);
+                Marshal.FreeHGlobal(i2_USB2_OGL_LastDataPosition);
+            }
+
+
+            public IntPtr i2_USB2_OGL_Suspended = Marshal.AllocHGlobal(1);
+            public IntPtr i2_USB2_OGL_ScreenDrawn = Marshal.AllocHGlobal(1);
+            public IntPtr i2_USB2_OGL_Window_Frames = Marshal.AllocHGlobal(1);
+            public IntPtr i2_USB2_OGL_Extrapolate = Marshal.AllocHGlobal(1);
+            public IntPtr i2_USB2_OGL_LastDataPosition = Marshal.AllocHGlobal(1);
+
+            public void i2_ConnectPtrs()
+            {
+                NativeMethods.OGL_Suspended(i2_USB2_OGL_Suspended);
+                NativeMethods.OGL_pScreenDrawn(i2_USB2_OGL_ScreenDrawn);
+                NativeMethods.OGL_Window_Frames(i2_USB2_OGL_Window_Frames);
+                NativeMethods.OGL_Extrapolate(i2_USB2_OGL_Extrapolate);
+                NativeMethods.OGL_LastDataPosition(i2_USB2_OGL_LastDataPosition);
+            }
+            //public delegate void _Delegate_SetItemChecked(CheckedListBox chkListBox);
+            //public static void Method_SetItemChecked(CheckedListBox chkListBox)
+            //{
+            //  chkListBox.SetItemChecked(0, true);
+            //}
+            public void i2_Set(byte value, IntPtr item, CheckedListBox chkListOGL, byte index)
+            {
+                Marshal.WriteByte(item, value);
+                //_Delegate_SetItemChecked delegate_SetItemChecked = Method_SetItemChecked;
+                if (chkListOGL != null)
+                    //Pass newly created method SetItemChecked into the running thread of chkListOGL to be executed
+                    chkListOGL.Invoke(new Action<byte, IntPtr,CheckedListBox,byte>((ivalue,iitem,ichkLstBox,iindex)=> 
+                    {ichkLstBox.SetItemChecked(iindex, (Marshal.ReadByte(iitem) == 1) ? true : false); }),value,item,chkListOGL,index);
+                
+            }
+            public void i2_Set(Int32 value, IntPtr item, CheckedListBox chkListOGL, byte index)
+            {
+                Marshal.WriteInt32(item, value);
+                //_Delegate_SetItemChecked delegate_SetItemChecked = Method_SetItemChecked;
+                if (chkListOGL != null)
+                    //Pass newly created method SetItemChecked into the running thread of chkListOGL to be executed
+                    chkListOGL.Invoke(new Action<Int32, IntPtr, CheckedListBox, byte>((ivalue, iitem, ichkLstBox, iindex) =>
+                    { ichkLstBox.SetItemChecked(iindex, (Marshal.ReadByte(iitem) == 1) ? true : false); }), value, item, chkListOGL, index);
+
+            }
+            public void i2_SetAll(Int32 value, Form This)
+            {
+                Control chkListOGLSuspended = This.Controls.Find("ChkListOGLSuspended", true)[0];
+                Control chkoptionExtrapolated = This.Controls.Find("ChkoptionExtrapolated", true)[0];
+
+                Marshal.WriteByte(i2_USB2_OGL_Suspended, (byte) value);
+                Marshal.WriteByte(i2_USB2_OGL_ScreenDrawn, (byte)value);
+                Marshal.WriteByte(i2_USB2_OGL_Window_Frames, (byte)value);
+                Marshal.WriteByte(i2_USB2_OGL_Extrapolate, (byte)value);
+                Marshal.WriteInt32(i2_USB2_OGL_LastDataPosition, value);
+                if (chkListOGLSuspended != null)
+                    //Pass newly created method SetItemChecked into the running thread of chkListOGL to be executed
+                    chkListOGLSuspended.Invoke(new Action<byte, CheckedListBox>((ivalue, ichkLstBox) =>
+                    { 
+                        ichkLstBox.SetItemChecked(0, (Marshal.ReadByte(i2_USB2_OGL_Suspended) == 1) ? true : false); 
+                    }), (byte) value, chkListOGLSuspended);
+                if (chkoptionExtrapolated != null)
+                    //Pass newly created method SetItemChecked into the running thread of chkListOGL to be executed
+                    chkoptionExtrapolated.Invoke(new Action<byte, CheckBox>((ivalue, ichkBox) =>
+                    {
+                        ichkBox.Checked = (Marshal.ReadByte(i2_USB2_OGL_Extrapolate) == 1) ? true : false;
+                    }), (byte) value, chkoptionExtrapolated);
+            }
+        }
+        public _OGL_Screen_Status OGL_Screen_Status = new _OGL_Screen_Status();
+
+        public class _USB2_Device_Status
+        {
+            ~_USB2_Device_Status()
+            {
+                Marshal.FreeHGlobal(i2_Started);
+                Marshal.FreeHGlobal(i2_Stopped);
+                Marshal.FreeHGlobal(i2_Initialized);
+                Marshal.FreeHGlobal(i2_Errored);
+                Marshal.FreeHGlobal(i2_RequestToStop);
+                Marshal.FreeHGlobal(i2_USB2_BackBufferFilled);
+                Marshal.FreeHGlobal(i2_USB2_BackBufferLocked);
+            }
+
+            public IntPtr i2_Started = Marshal.AllocHGlobal(1);
+            public IntPtr i2_Stopped = Marshal.AllocHGlobal(1);
+            public IntPtr i2_Initialized = Marshal.AllocHGlobal(1);
+            public IntPtr i2_Errored = Marshal.AllocHGlobal(1);
+            public IntPtr i2_RequestToStop = Marshal.AllocHGlobal(1);
+            public IntPtr i2_USB2_BackBufferFilled = Marshal.AllocHGlobal(1);
+            public IntPtr i2_USB2_BackBufferLocked = Marshal.AllocHGlobal(1);
+
+            public void i2_Set(byte value,IntPtr item, CheckedListBox chkListUSBState, byte index)
+            {
+                Marshal.WriteByte(item, value);
+                if (chkListUSBState != null)
+                    //Pass newly created method SetItemChecked into the running thread of chkListUSBState to be executed
+                    chkListUSBState.Invoke(new Action<byte, IntPtr, CheckedListBox, byte>((ivalue, iitem, ichkLstBox, iindex) =>
+                    { chkListUSBState.SetItemChecked(iindex, (Marshal.ReadByte(iitem) == 1) ? true : false); }), value, item, chkListUSBState, index);
+                    //chkListUSBState.SetItemChecked(index, (Marshal.ReadByte(item) == 1) ? true : false);
+            }
+            public void i2_SetAll(byte value, CheckedListBox chkListUSBState)
+            {
+                Marshal.WriteByte(i2_Started, value);
+                Marshal.WriteByte(i2_Stopped, value);
+                Marshal.WriteByte(i2_Initialized, value);
+                Marshal.WriteByte(i2_Errored, value);
+                Marshal.WriteByte(i2_RequestToStop, value);
+                if (chkListUSBState != null)
+                {
+                    chkListUSBState.Invoke(new Action<byte, CheckedListBox>((ivalue, ichkLstBox) => {
+                        ichkLstBox.SetItemChecked(0, (Marshal.ReadByte(i2_Initialized) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(1, (Marshal.ReadByte(i2_Started) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(2, (Marshal.ReadByte(i2_RequestToStop) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(3, (Marshal.ReadByte(i2_Stopped) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(4, (Marshal.ReadByte(i2_Errored) == 1) ? true : false);
+                    }), value, chkListUSBState);
+                }
+            }
+            public void i2_UpdateChkList(CheckedListBox chkListUSBState)
+            {
+                if (chkListUSBState != null)
+                {
+                    chkListUSBState.Invoke(new Action<CheckedListBox>((ichkLstBox) => {
+                        ichkLstBox.SetItemChecked(0, (Marshal.ReadByte(i2_Initialized) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(1, (Marshal.ReadByte(i2_Started) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(2, (Marshal.ReadByte(i2_RequestToStop) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(3, (Marshal.ReadByte(i2_Stopped) == 1) ? true : false);
+                        ichkLstBox.SetItemChecked(4, (Marshal.ReadByte(i2_Errored) == 1) ? true : false);
+                    }), chkListUSBState);
+                }
+            }
+            public void i2_ConnectPtrs()
+            {
+                NativeMethods.USB2_Device_Status_Started(i2_Started);
+                NativeMethods.USB2_Device_Status_Stopped(i2_Stopped);
+                NativeMethods.USB2_Device_Status_RequestToStop(i2_RequestToStop);
+                NativeMethods.USB2_Device_Status_Initialized(i2_Initialized);
+                NativeMethods.USB2_Device_Status_Errored(i2_Errored);
+                NativeMethods.USB2_Device_BackBufferFilled(i2_USB2_BackBufferFilled);
+                NativeMethods.USB2_Device_BackBufferLocked(i2_USB2_BackBufferLocked);
+            }
+            public class _Action
+            {
+                public IntPtr i2_Initialized = Marshal.AllocHGlobal(1);
+                public IntPtr i2_DeviceFound = Marshal.AllocHGlobal(1);
+                public IntPtr i2_GetDescriptor = Marshal.AllocHGlobal(1);
+                public IntPtr i2_GetInterface = Marshal.AllocHGlobal(1);
+                public IntPtr i2_GetIsochPipe = Marshal.AllocHGlobal(1);
+                public IntPtr i2_GetInterval = Marshal.AllocHGlobal(1);
+                public IntPtr i2_SetTransferChars = Marshal.AllocHGlobal(1);
+                public IntPtr i2_SetOverlappedStructure = Marshal.AllocHGlobal(1);
+                public IntPtr i2_SetOverlappedEvents = Marshal.AllocHGlobal(1);
+                public IntPtr i2_SetIsochPackets = Marshal.AllocHGlobal(1);
+                public IntPtr i2_RegisterIsochBuffer = Marshal.AllocHGlobal(1);
+                public IntPtr i2_ResetPipe = Marshal.AllocHGlobal(1);
+                public IntPtr i2_EndAtFrame = Marshal.AllocHGlobal(1);
+                public IntPtr i2_ReadIsochPipe = Marshal.AllocHGlobal(1);
+
+                public void i2_Set(byte value, IntPtr item, CheckedListBox chkListUSBInit, byte index)
+                {
+                    Marshal.WriteByte(item, value);
+                    if (chkListUSBInit != null)
+                        //Pass newly created method SetItemChecked into the running thread of chkListOGL to be executed
+                        chkListUSBInit.Invoke(new Action<byte, IntPtr, CheckedListBox, byte>((ivalue, iitem, ichkLstBox, iindex) =>
+                        { chkListUSBInit.SetItemChecked(iindex, (Marshal.ReadByte(iitem) == 1) ? true : false); }), value, item, chkListUSBInit, index);
+                        //chkListUSBInit.SetItemChecked(index, (Marshal.ReadByte(item) == 1) ? true : false);
+                }
+
+                public void i2_SetAllAction(byte value, CheckedListBox chkListUSBInit)
+                {
+                    Marshal.WriteByte(i2_DeviceFound, value);
+                    Marshal.WriteByte(i2_GetDescriptor, value);
+                    Marshal.WriteByte(i2_GetInterface, value);
+                    Marshal.WriteByte(i2_GetIsochPipe, value);
+                    Marshal.WriteByte(i2_GetInterval, value);
+                    Marshal.WriteByte(i2_SetTransferChars, value);
+                    Marshal.WriteByte(i2_SetOverlappedStructure, value);
+                    Marshal.WriteByte(i2_SetOverlappedEvents, value);
+                    Marshal.WriteByte(i2_SetIsochPackets, value);
+                    Marshal.WriteByte(i2_SetIsochPackets, value);
+                    Marshal.WriteByte(i2_ResetPipe, value);
+                    Marshal.WriteByte(i2_EndAtFrame, value);
+                    if (chkListUSBInit != null) {
+                        chkListUSBInit.Invoke(new Action<byte, CheckedListBox>((ivalue, ichkLstBox) => {
+                            chkListUSBInit.SetItemChecked(0, (Marshal.ReadByte(i2_DeviceFound) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(1, (Marshal.ReadByte(i2_GetDescriptor) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(2, (Marshal.ReadByte(i2_GetInterface) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(3, (Marshal.ReadByte(i2_GetIsochPipe) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(4, (Marshal.ReadByte(i2_GetInterval) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(5, (Marshal.ReadByte(i2_SetTransferChars) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(6, (Marshal.ReadByte(i2_SetOverlappedStructure) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(7, (Marshal.ReadByte(i2_SetOverlappedEvents) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(8, (Marshal.ReadByte(i2_SetIsochPackets) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(9, (Marshal.ReadByte(i2_SetIsochPackets) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(10, (Marshal.ReadByte(i2_ResetPipe) == 1) ? true : false);
+                            chkListUSBInit.SetItemChecked(11, (Marshal.ReadByte(i2_EndAtFrame) == 1) ? true : false);
+                        }), value, chkListUSBInit);
+                    }
+
+
+                }
+                public void i2_UpdateChkList(CheckedListBox chkListUSBInit)
+                {
+                    if (chkListUSBInit != null)
+                    {
+                        chkListUSBInit.Invoke(new Action<CheckedListBox>((ichkLstBox) => {
+                            ichkLstBox.SetItemChecked(0, (Marshal.ReadByte(i2_DeviceFound) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(1, (Marshal.ReadByte(i2_GetDescriptor) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(2, (Marshal.ReadByte(i2_GetInterface) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(3, (Marshal.ReadByte(i2_GetIsochPipe) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(4, (Marshal.ReadByte(i2_GetInterval) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(5, (Marshal.ReadByte(i2_SetTransferChars) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(6, (Marshal.ReadByte(i2_SetOverlappedStructure) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(7, (Marshal.ReadByte(i2_SetOverlappedEvents) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(8, (Marshal.ReadByte(i2_SetIsochPackets) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(9, (Marshal.ReadByte(i2_SetIsochPackets) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(10, (Marshal.ReadByte(i2_ResetPipe) == 1) ? true : false);
+                            ichkLstBox.SetItemChecked(11, (Marshal.ReadByte(i2_EndAtFrame) == 1) ? true : false);
+                        }), chkListUSBInit);
+                    }
+                }
+                public void i2_ConnectPtrs()
+                {
+                    NativeMethods.USB2_Device_Status_Action_DeviceFound(i2_DeviceFound);
+                    NativeMethods.USB2_Device_Status_Action_GetDescriptor(i2_GetDescriptor);
+                    NativeMethods.USB2_Device_Status_Action_GetInterface(i2_GetInterface);
+                    NativeMethods.USB2_Device_Status_Action_GetIsochPipe(i2_GetIsochPipe);
+                    NativeMethods.USB2_Device_Status_Action_GetInterval(i2_GetInterval);
+                    NativeMethods.USB2_Device_Status_Action_SetTransferChars(i2_SetTransferChars);
+                    NativeMethods.USB2_Device_Status_Action_SetOverlappedStructure(i2_SetOverlappedStructure);
+                    NativeMethods.USB2_Device_Status_Action_SetOverlappedEvents(i2_SetOverlappedEvents);
+                    NativeMethods.USB2_Device_Status_Action_SetIsochPackets(i2_SetIsochPackets);
+                    NativeMethods.USB2_Device_Status_Action_RegisterIsochBuffer(i2_RegisterIsochBuffer);
+                    NativeMethods.USB2_Device_Status_Action_ResetPipe(i2_ResetPipe);
+                    NativeMethods.USB2_Device_Status_Action_EndAtFrame(i2_EndAtFrame);
+                    NativeMethods.USB2_Device_Status_Action_ReadIsochPipe(i2_ReadIsochPipe);
+                }
+                ~_Action()
+                {
+                    Marshal.FreeHGlobal(i2_Initialized);
+                    Marshal.FreeHGlobal(i2_DeviceFound);
+                    Marshal.FreeHGlobal(i2_GetDescriptor);
+                    Marshal.FreeHGlobal(i2_GetInterface);
+                    Marshal.FreeHGlobal(i2_GetIsochPipe);
+                    Marshal.FreeHGlobal(i2_GetInterval);
+                    Marshal.FreeHGlobal(i2_SetTransferChars);
+                    Marshal.FreeHGlobal(i2_SetOverlappedStructure);
+                    Marshal.FreeHGlobal(i2_SetOverlappedEvents);
+                    Marshal.FreeHGlobal(i2_SetIsochPackets);
+                    Marshal.FreeHGlobal(i2_RegisterIsochBuffer);
+                    Marshal.FreeHGlobal(i2_ResetPipe);
+                    Marshal.FreeHGlobal(i2_EndAtFrame);
+                    Marshal.FreeHGlobal(i2_ReadIsochPipe);
+                }
+            }
+            public _Action Action = new _Action();
+        }
+        public _USB2_Device_Status USB2_Device_Status = new _USB2_Device_Status();
+
+        /* Event system:
+         * |-------------------------->          v       <-------------------------->         v          <----------------->     ^
+         *   USB(cpp - start) READ IN    Backbufferfilled     TRANSFORMVERTEX         BufferTransformed      MOVEBUFFER        Release backbuffer filled & Buffertransformed
+         *   <----------------------------------------------------------------------->
+         *                               TRANSFORMVERTEX
+         *    => system will not read while Backbuffer is still filled and not moved
+         *    => system will not move unless Backbuffer is filled and transformed
+         *    => system will transform continuously unless while moving
+         *    => TO DO system will only transfor one time per screen draw and wait for the transform as long as possible
+         */
+
+
+
+        public void butUSB2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (butUSB2.Text == "Connect to USB device")
+                {
+                    butUSB2.Enabled = false;
+                    ButMemoryMode.Enabled = false;
+
+                    
+                    TxtUSB2.Clear();
+
+                    Array.Clear(USB2_Buffer, 0, USB2_Buffer.Length);
+                    USB2_BufferIterations = 0; //Keep track of number of times the buffer was filled
+                    USB2_BufferPosition16 = USB2_Buffer.Length; //Pointer where the buffer is writing
+
+                    USB2_Device_Status.i2_ConnectPtrs();
+                    USB2_Device_Status.Action.i2_ConnectPtrs();
+                    
+                    USB2_Device_Status.Action.i2_SetAllAction(0, ChkListUSBInit);
+                    USB2_Device_Status.i2_SetAll(0, ChkListUSBState);
+
+                    bool success = NativeMethods.USB2_Device_Initialize(USB2_Buffer, (UInt32)USB2_Buffer.Length * 2, USB2_BufferSize8, USB2_NumberOfPackets, 1);
+                    USB2_Device_Status.i2_UpdateChkList(ChkListUSBState);
+                    USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
+                    if (Marshal.ReadByte(USB2_Device_Status.i2_Initialized) == 0) throw new ArgumentException("USB not initialized");
+                    ChkListUSBState.SetItemChecked(0, (Marshal.ReadByte(USB2_Device_Status.i2_Initialized) == 1) ? true : false);
+
+                    
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_DeviceFound) == 0) throw new ArgumentException("1");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_GetDescriptor) == 0) throw new ArgumentException("2");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_GetInterface) == 0) throw new ArgumentException("3");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_GetIsochPipe) == 0) throw new ArgumentException("4");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_GetInterval) == 0) throw new ArgumentException("5");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_SetTransferChars) == 0) throw new ArgumentException("6");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_SetOverlappedStructure) == 0) throw new ArgumentException("7");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_SetOverlappedEvents) == 0) throw new ArgumentException("8");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_SetIsochPackets) == 0) throw new ArgumentException("9");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_SetIsochPackets) == 0) throw new ArgumentException("10");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_ResetPipe) == 0) throw new ArgumentException("11");
+                    if (Marshal.ReadByte(USB2_Device_Status.Action.i2_EndAtFrame) == 0) throw new ArgumentException("12");
+
+                    USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
+
+                    TxtUSB2.Clear();
+                    TxtUSB2.AppendText("USB device succesfully initialized");
+
+                    Array.Clear(USB2_VertexBuffer[0], 0, USB2_VertexBuffer[0].Length);
+                    Array.Clear(USB2_VertexBuffer[1], 0, USB2_VertexBuffer[1].Length);
+                    Array.Clear(USB2_VertexBuffer[2], 0, USB2_VertexBuffer[2].Length);
+
+                    USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_USB2_BackBufferFilled, null, 0);
+                    USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_USB2_BackBufferLocked, null, 0);
+                    OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
+                    OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn, null, 0);
+                    
+                    
+                    for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
+                    {
+                        USB2_VertexBuffer[0][i] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[0][i + 2] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[0][i + 4] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[1][i]++;
+                        USB2_VertexBuffer[1][i + 2]++;
+                        USB2_VertexBuffer[1][i + 4]++;
+                    }
+
+                    butUSB2.Text = "Disconnect from USB device";
+                    butUSB2.Enabled = true;
+
+                    Task USB2_Start = Task.Run(() =>
+                    {
+                        NativeMethods.USB2_Device_Start(100, 0);
+                    });
+                    Task USB2_CheckStarted = Task.Run(() =>
+                    {
+                        while (Marshal.ReadByte(USB2_Device_Status.i2_Started) == 0) ;
+                    });
+                    if (USB2_CheckStarted.Wait(500) == false)
+                    { throw new ArgumentException("USB could not be started"); }
+                    USB2_Device_Status.i2_UpdateChkList(ChkListUSBState);
+                    USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
+
+
+
+
+                    /* Task must transform the read data until and no later than, allowing to finish transformation, the signal is given that the backbuffer is filled.
+                     * At the even the backbuffer is filled, the moving task is to kick in, holding all other activities.
+                     * From the moment moving is done, reading from USB and transforming of data is to be allowed asynchronously
+                     */
+
+                    OGL_Screen_Status.i2_Set(0, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
+
+                    Task USB2_ProcessBuffer = Task.Run(() =>
+                    {
+                        //while (Marshal.ReadByte(USB2_Device_Status.i2_Started) == 0);
+                        while (Marshal.ReadByte(USB2_Device_Status.i2_Started) == 1)
+                        {
+                            if (Marshal.ReadByte(USB2_Device_Status.i2_USB2_BackBufferFilled) == 1)
+                            {// Do not allow to continue as long as the backbuffer is not filled or the front buffer is filled
+
+                                //USB2_Device_Status.i2_Set(1, USB2_Device_Status.i2_USB2_BackBufferLocked, null, 0);//performance direct written
+                                Marshal.WriteByte(USB2_Device_Status.i2_USB2_BackBufferLocked, 0);//Lock the backbuffer for threading purposes, ensuring no concurrent writes
+
+                                for (UInt32 i = 0; i < USB2_Buffer.Length; i++)
+                                {
+                                    if (i < USB2_Buffer.Length - USB2_BufferSize8 / 2)
+                                    {
+                                        if (USB2_Buffer[i + USB2_BufferSize8 / 2] == 65530)
+                                            i = i; //will be hit when the USB cannt transfer all the data, lower size per packet is adviced
+                                        USB2_Buffer[i] = USB2_Buffer[i + USB2_BufferSize8 / 2];
+                                    }
+                                    else
+                                        USB2_Buffer[i] = 65530;
+                                }
+
+                                //Array.Copy(USB2_Buffer, USB2_BufferSize8 / 2, USB2_Buffer, 0, USB2_Buffer.Length-USB2_BufferSize8/2);
+                                //for (Int32 i = USB2_Buffer.Length - (Int32)USB2_BufferSize8 / 2; i < USB2_Buffer.Length; i++) USB2_Buffer[i] = 65535;
+                                USB2_BufferPosition16 -= (Int32)(USB2_BufferSize8 / 2);
+                                if (USB2_BufferPosition16 <= (Int32)(USB2_BufferSize8 / 2))
+                                { //USB2_BufferPosition16 is at the head of the datablock
+                                    USB2_BufferPosition16 = USB2_Buffer.Length; USB2_BufferIterations++;
+                                    if (USB2_Mode == 2)
+                                    {
+
+                                        USB2_Device_Status.i2_Set(1, USB2_Device_Status.i2_RequestToStop, ChkListUSBState, 2);
+                                        USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_USB2_BackBufferFilled, null, 0); //Give signal to USB_Device to continue
+                                        
+                                        while (Marshal.ReadByte(USB2_Device_Status.i2_Started) == 1) ; //Hold as long as USB is in started state
+
+                                        OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
+
+                                        USB2_Device_Status.i2_UpdateChkList(ChkListUSBInit);
+                                    }
+                                }
+                                Marshal.WriteByte(USB2_Device_Status.i2_USB2_BackBufferFilled, 0);//Gives trigger to USB_Device_Swap() to continue and disallows slippage
+                                Marshal.WriteByte(USB2_Device_Status.i2_USB2_BackBufferLocked, 0);//Unlock Backbuffer for writing
+                                USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_USB2_BackBufferFilled, null, 0); //Performance reasons directly written
+                                USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_USB2_BackBufferLocked, null, 0); //Performance reasons directly written
+                            } 
+                            else //Transform and draw
+                            {
+                                switch (USB2_Mode)
+                                {
+                                    case 1:
+                                        Standard_Mode();
+                                        break;
+                                    case 3:
+                                        Roll_Mode();
+                                        break;
+                                    case 4:
+                                        Triggered_Mode();
+                                        break;
+                                }
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    butUSB2.Enabled = false;
+                    ButMemoryMode.Enabled = false;
+
+                    USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_Started, ChkListUSBState, 1);
+                    USB2_Device_Status.i2_Set(1, USB2_Device_Status.i2_RequestToStop, ChkListUSBState, 2);
+
+                    while (Marshal.ReadByte(USB2_Device_Status.i2_Started) == 1) ; //Hold as long as USB is in started state
+                    USB2_Device_Status.i2_UpdateChkList(ChkListUSBState);
+                    USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
+
+                    //Reset buffer
+                    for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
+                    {
+                        USB2_VertexBuffer[0][i] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[0][i + 2] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[0][i + 4] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[1][i] = 1;
+                        USB2_VertexBuffer[1][i + 2] = 1;
+                        USB2_VertexBuffer[1][i + 4] = 1;
+                    }
+
+                    //Reset axis
+                    CmbTimeDiv.Invoke(new Action(() =>
+                    {
+                        TimeDiv.FNumber = TimeDiv.gFlt(CmbTimeDiv.SelectedItem.ToString());
+                        for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
+                        {
+                            if (this.T_axis[i] == null) this.T_axis[i] = new Number();
+                            this.T_axis[i].FNumber = 0 + (i - this.Lbl_T_Axis.GetUpperBound(0)) * TimeDiv.FNumber;
+                            this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
+                        }
+                        ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+                    }));
+
+                    OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
+                    USB2_Device_Status.Action.i2_Set(0, USB2_Device_Status.Action.i2_Initialized, ChkListUSBInit, 0);
+                    USB2_Device_Status.Action.i2_SetAllAction(0, ChkListUSBInit);
+
+                    TxtUSB2.Clear();
+                    TxtUSB2.AppendText("USB stopped");
+
+                    butUSB2.Text = "Connect to USB device";
+                    butUSB2.Enabled = true;
+                    ButMemoryMode.Enabled = true;
+                }
+            }
+            catch (ArgumentException exception)
+            {
+                USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_Started, ChkListUSBState, 1);
+                USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_Stopped, ChkListUSBState, 3);
+                USB2_Device_Status.i2_Set(1, USB2_Device_Status.i2_Errored, ChkListUSBState, 4);
+                switch (exception.Message)
+                {
+                    case "USB not initialized":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("USB could not be initialized within 500 ms");
+                        break;
+                    case "1":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Could not open the device.");
+                        break;
+                    case "2":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Could not get descriptor.");
+                        break;
+                    case "3":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Could not get interface.");
+                        break;
+                    case "4":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Failed to get USB pipe. ");
+                        break;
+                    case "5":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Interval information or Maximum bytes interval invalid. ");
+                        break;
+                    case "6":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Transfer characteristics couldn't be set. ");
+                        break;
+                    case "7":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Overlapped structure couldn't be set. ");
+                        break;
+                    case "8":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Overlapped events couldn't be set. ");
+                        break;
+                    case "9":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Isochronous Packets couldn't be created. ");
+                        break;
+                    case "10":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Isochronous buffer couldn't be registred. Probably wrongly sized databuffer.");
+                        break;
+                    case "11":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Pipe couldn't be reset. ");
+                        break;
+                    case "12":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Buffer not set as a multiple of framesize. ");
+                        break;
+                    default:
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText(exception.Message);
+                        break;
+                }
+            }
+
+
+            USB2_Device_Status.i2_UpdateChkList(ChkListUSBState);
+            USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
+            butUSB2.Enabled = true;
+        }
+        
+        public void Standard_Mode()
+        {
+            //Collect read data
+            USB2_Watch.Start();
+
+             //Initialize and check conditions
+            float timeDiv = (TimeDiv.FNumber == 0) ? throw new ArgumentException("Params error") : TimeDiv.FNumber;
+            float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
+            //float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
+            float tickRange = timeDiv * USB2_Win_Div / 1000 * aDC_Clock;
+            float aDC_bitres = (ADC_BitRes.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_BitRes.FNumber;
+            float aDC_Vref = (ADC_VRef.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_VRef.FNumber;
+            float zeroVoltPoint = ZeroVoltPoint.FNumber;
+            float voltDiv = (VoltDiv.FNumber == 0) ? throw new ArgumentException("Params error") : VoltDiv.FNumber;
+            float aDCScaleFactor = aDC_Vref / (float)(Math.Pow(2, aDC_bitres) - 1); //mV/ADC_reading
+            float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
+
+            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
+            {
+                USB2_VertexBuffer[0][i] = 0;
+                USB2_VertexBuffer[1][i] = 0;
+                USB2_VertexBuffer[2][i] = 0;
+            }
+
+
+            Int32 RingBufferIndex = USB2_Buffer.Length - 1;
+            /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
+                *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
+                */
+            while (USB2_Buffer[RingBufferIndex] == 65530 && RingBufferIndex >= 3) RingBufferIndex -= 2;
+
+            UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
+            UInt32 vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+            float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+
+            /* 1) As time data is ordered, run through the Ringbuffer until cumulative Tick data is bigger than time scope requested by user. 
+                * 2) RingBufferIndex needs to remain above or equal to 3, to ensure staying above or at 0 array limit, {3;2} --> {1;0}
+                * 3) RingBufferIterations is there for performance reasons to makes sure the scan does not occur through the whole buffer for first time.
+                */
+            while (cumTickRange <= (UInt64)tickRange && RingBufferIndex >= 3 && !(USB2_BufferIterations == 0 && RingBufferIndex < USB2_BufferPosition16))
+            {
+
+
+                /* Vertexbuffer layout:
+                    * 0                          Datapoint x 682 (=Screenresolution const)
+                    * <------------------------------------------------------------------------->
+                    *   <------------------------------------------------>
+                    *                   1 DATAPOINT
+                    *   <-------------> + <-----------> + <-------------->
+                    *      LOWER             MID               UPPER
+                    *   {Tick;Reading}  +  {Tick;Reading}  + {Tick;Reading}
+                    *      0      1           2      3          4       5
+                    *   Each vertexbuffer item = {Datapoint, # of occurences, Average}
+                    *   
+                    *   
+                    */
+
+                USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
+                USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
+                if (USB2_Buffer[RingBufferIndex] != 65530) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
+                {
+                    RingBufferIndex -= 2; //jump per two
+
+                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
+                    vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+                    aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+
+                }
+                else RingBufferIndex -= 2;
+            };
+
+            //Calculate averages
+            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
+            {
+                if (USB2_VertexBuffer[1][i] != 0) USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
+            }
+
+            //Calculate upper and lower limit
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate)==0)
+            { 
+               float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
+
+               for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
+                {
+                    if (USB2_VertexBuffer[1][i] != 0)
+                    {
+                        USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
+                        USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
+                        USB2_VertexBuffer[1][i - 2]++;
+                        USB2_VertexBuffer[1][i + 2]++;
+                    }
+                }
+            }
+
+            //Filter array
+            UInt32 lastDataPosition = 0;
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
+            { 
+                float[] USB2_FilterBuffer = new float[USB2_VertexBuffer[2].Length];
+                Array.Clear(USB2_FilterBuffer, 0, USB2_FilterBuffer.Length);               
+                
+                for (UInt32 i = 0; i < USB2_VertexBuffer[2].Length - 2; i += 2)
+                {
+                    if (USB2_VertexBuffer[2][i] != 0 && USB2_VertexBuffer[2][i] >= -1 && USB2_VertexBuffer[2][i] <= 1)
+                        if (USB2_VertexBuffer[2][i + 1] != 0 && USB2_VertexBuffer[2][i + 1] >= -1 && USB2_VertexBuffer[2][i + 1] <= 1)
+                        {
+                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i]; lastDataPosition++;
+                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i + 1]; lastDataPosition++;
+                        }
+                }
+                Array.Copy(USB2_FilterBuffer, USB2_VertexBuffer[2], USB2_VertexBuffer[2].Length);
+            }
+
+            //Signal Screendraw
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
+                OGL_Screen_Status.i2_Set((Int32) lastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            else
+                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
+            while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
+
+            //Performance counting
+            USB2_Watch.Stop(); USB2_WatchData[USB2_WatchDataCounter] = (double)USB2_Watch.ElapsedTicks / Stopwatch.Frequency; if (USB2_WatchDataCounter >= USB2_WatchData.Length - 1) USB2_WatchDataCounter = 0; else USB2_WatchDataCounter++;
+            USB2_Watch.Reset(); USB2_Watch.Start();
+        }
+        public void Triggered_Mode()
+        {
+            //Collect read data
+            USB2_Watch.Start();
+
+            //Initialize and check conditions
+            float timeDiv = (TimeDiv.FNumber == 0) ? throw new ArgumentException("Params error") : TimeDiv.FNumber;
+            float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
+            //float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
+            float tickRange = timeDiv * USB2_Win_Div / 1000 * aDC_Clock;
+            float aDC_bitres = (ADC_BitRes.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_BitRes.FNumber;
+            float aDC_Vref = (ADC_VRef.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_VRef.FNumber;
+            float zeroVoltPoint = ZeroVoltPoint.FNumber;
+            float voltDiv = (VoltDiv.FNumber == 0) ? throw new ArgumentException("Params error") : VoltDiv.FNumber;
+            float aDCScaleFactor = aDC_Vref / (float)(Math.Pow(2, aDC_bitres) - 1); //mV/ADC_reading
+            float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
+
+            Int32 vertexIndexOrigin = (Int32)((USB2_VertexBufferTrigger[0] + 1.0f) / 2 * (USB2_Win_W - 1));
+            
+            UInt32 triggerTPoint = (UInt32) ((USB2_VertexBufferTrigger[0]+1.0f)/2 * (USB2_Win_W-1));
+            float triggerVPointf = USB2_VertexBufferTrigger[5];
+
+            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
+            {
+                USB2_VertexBuffer[0][i] = 0;
+                USB2_VertexBuffer[1][i] = 0;
+                USB2_VertexBuffer[2][i] = 0;
+            }
+
+
+            //Collect read data
+            USB2_Watch.Start();
+
+
+            Int32 RingBufferIndex = USB2_Buffer.Length - 1;
+            /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
+                *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
+                */
+            while (USB2_Buffer[RingBufferIndex] == 65530 && RingBufferIndex >= 3) RingBufferIndex -= 2;
+
+            UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
+            UInt32 vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+            float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+
+            /* 1) As time data is ordered, run through the Ringbuffer until cumulative Tick data is bigger than time scope requested by user. 
+                * 2) RingBufferIndex needs to remain above or equal to 3, to ensure staying above or at 0 array limit, {3;2} --> {1;0}
+                * 3) RingBufferIterations is there for performance reasons to makes sure the scan does not occur through the whole buffer for first time.
+                */
+            while (cumTickRange <= (UInt64)tickRange && RingBufferIndex >= 3 && !(USB2_BufferIterations == 0 && RingBufferIndex < USB2_BufferPosition16))
+            {
+
+
+                /* Vertexbuffer layout:
+                    * 0                          Datapoint x 682 (=Screenresolution const)
+                    * <------------------------------------------------------------------------->
+                    *   <------------------------------------------------>
+                    *                   1 DATAPOINT
+                    *   <-------------> + <-----------> + <-------------->
+                    *      LOWER             MID               UPPER
+                    *   {Tick;Reading}  +  {Tick;Reading}  + {Tick;Reading}
+                    *      0      1           2      3          4       5
+                    *   Each vertexbuffer item = {Datapoint, # of occurences, Average}
+                    *   
+                    *   
+                    */
+
+                USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
+                USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
+
+                if (USB2_Buffer[RingBufferIndex] != 65530) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
+                {
+                    RingBufferIndex -= 2; //jump per two
+
+                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
+                    vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+                    aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+                }
+                else RingBufferIndex -= 2;
+            };
+
+            //Calculate averages
+            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
+            {
+                if (USB2_VertexBuffer[1][i] != 0)
+                {     
+                    USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
+                }
+            }
+            //Calculate trigger point
+            Int32 triggerPoint = USB2_VertexBuffer[0].Length-1;
+            
+            for (Int32 i = USB2_VertexBuffer[0].Length-1; i >= 2; i-=2)     //Average all readings
+            {
+                if (USB2_VertexBuffer[1][i] != 0)
+                {
+                    bool result2 = USB2_VertexBuffer[2][i] < triggerVPointf;
+                    Int32 y = i - 2;
+                    for (y = i - 2; y >= 1; y -= 2) { if (USB2_VertexBuffer[1][y] != 0) break; }
+                    bool result1 = false;
+                    if (y > 0) result1 = (USB2_VertexBuffer[2][y] > triggerVPointf);
+                    if (result1 && result2)
+                    {
+                        triggerPoint = i;
+                        /*TxtUSB2.Invoke(new Action(() =>
+                        {
+                            TxtUSB2.AppendText(triggerPoint.ToString());
+                            TxtUSB2.AppendText("\r\n");
+                        }));*/
+                        break;
+                    }
+                }
+            }
+
+            //reposition screen
+            float alpha = (float)1.0f / (2 * USB2_NumberOfPointsPerTick) / USB2_Win_W * 2.0f;
+            float beta = (float)USB2_VertexBufferTrigger[0] -alpha * (float) triggerPoint;
+            for (Int32 i = 0; i < USB2_VertexBuffer[0].Length-1 ; i+=2*USB2_NumberOfPointsPerTick)
+            {
+                USB2_VertexBuffer[2][i] = (float) i * alpha + beta;
+                USB2_VertexBuffer[2][i+2] = (float)i * alpha + beta;
+                USB2_VertexBuffer[2][i+4] = (float)i * alpha + beta;
+                USB2_VertexBuffer[0][i] = (float)i * alpha + beta;
+                USB2_VertexBuffer[0][i + 2] = (float)i * alpha + beta;
+                USB2_VertexBuffer[0][i + 4] = (float)i * alpha + beta;
+                USB2_VertexBuffer[1][i] = 1;
+                USB2_VertexBuffer[1][i + 2] = 1;
+                USB2_VertexBuffer[1][i + 4] = 1;
+            }
+
+            //Calculate upper and lower limit
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 0)
+            { 
+                float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
+
+                for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
+                {
+                    if (USB2_VertexBuffer[1][i] != 0)
+                    {
+                        USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
+                        USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
+                        USB2_VertexBuffer[1][i - 2]++;
+                        USB2_VertexBuffer[1][i + 2]++;
+                    }
+                }
+            }
+
+            //Filter array
+            UInt32 lastDataPosition = 0;
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
+            {
+                float[] USB2_FilterBuffer = new float[USB2_VertexBuffer[2].Length];
+                Array.Clear(USB2_FilterBuffer, 0, USB2_FilterBuffer.Length);
+
+                for (UInt32 i = 0; i < USB2_VertexBuffer[2].Length - 2; i += 2)
+                {
+                    if (USB2_VertexBuffer[2][i] != 0 && USB2_VertexBuffer[2][i] >= -1 && USB2_VertexBuffer[2][i] <= 1)
+                        if (USB2_VertexBuffer[2][i + 1] != 0 && USB2_VertexBuffer[2][i + 1] >= -1 && USB2_VertexBuffer[2][i + 1] <= 1)
+                        {
+                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i]; lastDataPosition++;
+                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i + 1]; lastDataPosition++;
+                        }
+                }
+                Array.Copy(USB2_FilterBuffer, USB2_VertexBuffer[2], USB2_VertexBuffer[2].Length);
+            }
+
+            //Signal Screendraw
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
+                OGL_Screen_Status.i2_Set((Int32)lastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            else
+                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
+            while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
+
+            //Performance counting
+            USB2_Watch.Stop(); USB2_WatchData[USB2_WatchDataCounter] = (double)USB2_Watch.ElapsedTicks / Stopwatch.Frequency; if (USB2_WatchDataCounter >= USB2_WatchData.Length - 1) USB2_WatchDataCounter = 0; else USB2_WatchDataCounter++;
+            USB2_Watch.Reset(); USB2_Watch.Start();
+
+        }
+        public void Roll_Mode()
+        {
+            //Collect read data
+            USB2_Watch.Start();
+
+            //Initialize and check conditions
+            float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
+            float aDC_Vref = (ADC_VRef.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_VRef.FNumber;
+            float aDC_bitres = (ADC_BitRes.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_BitRes.FNumber;
+            float timeDiv = (TimeDiv.FNumber == 0) ? throw new ArgumentException("Params error") : TimeDiv.FNumber;
+            float voltDiv = (VoltDiv.FNumber == 0) ? throw new ArgumentException("Params error") : VoltDiv.FNumber;
+
+            float zeroTimePoint = ZeroTimePoint.FNumber;
+            float zeroVoltPoint = ZeroVoltPoint.FNumber;
+
+            float timeScaleFactor = (float)1000 / aDC_Clock;
+            float aDCScaleFactor = aDC_Vref / (float)(Math.Pow(2, aDC_bitres) - 1); //mV/ADC_reading
+
+
+            float timeMoveFactor = zeroTimePoint / (timeDiv * USB2_Win_Div / 2);
+            float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
+
+            Int32 USB2_RollModeOffset = USB2_VertexBuffer[0].Length;
+            Int32 USB2_DrawBound = USB2_VertexBuffer[0].Length;
+
+            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
+            {
+                USB2_VertexBuffer[0][i] = 0;
+                USB2_VertexBuffer[1][i] = 0;
+                USB2_VertexBuffer[2][i] = 0;
+            }
+
+            CmbTimeDiv.Invoke(new Action(() =>
+            {
+                TimeDiv.FNumber = TimeDiv.gFlt(CmbTimeDiv.SelectedItem.ToString());
+                for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
+                {
+                    if (this.T_axis[i] == null) this.T_axis[i] = new Number();
+                    this.T_axis[i].FNumber = 0 + i * TimeDiv.FNumber;
+                    this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
+                }
+                ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+            }));
+
+            Int32 RingBufferIndex = USB2_Buffer.Length - 1;
+            /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
+                *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
+                */
+
+            UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
+            UInt32 vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
+            float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+
+
+            //here we dont pursue performance yet (stop searching after out of bound time element)
+            while (RingBufferIndex >= 3 && !(USB2_BufferIterations == 0 && RingBufferIndex < USB2_BufferPosition16))
+            {
+
+
+                /* Vertexbuffer layout:
+                    * 0                          Datapoint x 682 (=Screenresolution const)
+                    * <------------------------------------------------------------------------->
+                    *   <------------------------------------------------>
+                    *                   1 DATAPOINT
+                    *   <-------------> + <-----------> + <-------------->
+                    *      LOWER             MID               UPPER
+                    *   {Tick;Reading}  +  {Tick;Reading}  + {Tick;Reading}
+                    *      0      1           2      3          4       5
+                    *   Each vertexbuffer item = {Datapoint, # of occurences, Average}
+                    *   
+                    *   
+                    */
+
+
+                //Check if valid measurement
+                if (USB2_Buffer[RingBufferIndex] != 65530 && USB2_Buffer[RingBufferIndex - 1] != 65530)
+                {
+                    //if valid measurement calculate index and ADC_reading
+                    
+                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
+                    vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
+                    aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+
+                    //Check if ADC reading within time bounds
+                    if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 < USB2_VertexBuffer[0].Length) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
+                    {
+                        if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 >= 0)
+                        {
+                            //check if reading within the RollModeOffset bound
+                            if(USB2_DrawBound <= 2 * USB2_NumberOfPointsPerTick * vertexIndex + 2)
+                            { 
+                                USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
+                                USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
+                            }
+                            USB2_RollModeOffset = (Int32) Math.Min(USB2_RollModeOffset, 2 * USB2_NumberOfPointsPerTick * vertexIndex + 2);
+                            USB2_DrawBound = (Int32)Math.Min(USB2_RollModeOffset, 2 * USB2_NumberOfPointsPerTick * vertexIndex + 2);
+                            if (USB2_RollModeOffset == 2)
+                            {
+                                USB2_DrawBound = USB2_VertexBuffer[0].Length-2*2*USB2_NumberOfPointsPerTick; //Length - 1
+                                USB2_RollModeOffset = USB2_VertexBuffer[0].Length;
+                                cumTickRange = 0;
+                                for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
+                                {
+                                    USB2_VertexBuffer[0][i] = 0;
+                                    USB2_VertexBuffer[1][i] = 0;
+                                    USB2_VertexBuffer[2][i] = 0;
+                                }
+                            }
+                        }
+                    }
+                    else RingBufferIndex = 0; //For performance reasons: time is ordered, so from first out of bound jump out of loop
+                }
+                RingBufferIndex -= 2; //jump per two
+            };
+
+           
+            //Move the time axis
+            for (Int32 i = USB2_RollModeOffset; i < USB2_VertexBuffer[0].Length-2; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
+            {
+                USB2_VertexBuffer[0][i - 2] = (float)(((i-USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
+                USB2_VertexBuffer[0][i] = (float)(((i - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
+                USB2_VertexBuffer[0][i + 2] = (float)(((i - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
+                USB2_VertexBuffer[1][i - 2] = 1;
+                USB2_VertexBuffer[1][i] = 1;
+                USB2_VertexBuffer[1][i + 2] = 1;
+            }
+            for (Int32 i = 2; i < USB2_RollModeOffset-2; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
+            {
+                USB2_VertexBuffer[0][i - 2] = (float)(((i + USB2_VertexBuffer[0].Length - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
+                USB2_VertexBuffer[0][i] = (float)(((i + USB2_VertexBuffer[0].Length - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
+                USB2_VertexBuffer[0][i + 2] = (float)(((i + USB2_VertexBuffer[0].Length - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
+                USB2_VertexBuffer[1][i - 2] = 1;
+                USB2_VertexBuffer[1][i] = 1;
+                USB2_VertexBuffer[1][i + 2] = 1;
+            }
+
+            //Calculate averages
+            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
+            {
+                if (USB2_VertexBuffer[1][i] != 0) USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
+            }
+
+            //Calculate upper and lower limit
+            float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
+
+            for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
+            {
+                if (USB2_VertexBuffer[1][i] != 0)
+                {
+                    USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
+                    USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
+                    USB2_VertexBuffer[1][i - 2] = 0;
+                    USB2_VertexBuffer[1][i + 2] = 0;
+                }
+            }
+
+
+            //Signal Screendraw
+            OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
+            while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
+
+            //Performance counting
+            USB2_Watch.Stop(); USB2_WatchData[USB2_WatchDataCounter] = (double)USB2_Watch.ElapsedTicks / Stopwatch.Frequency; if (USB2_WatchDataCounter >= USB2_WatchData.Length - 1) USB2_WatchDataCounter = 0; else USB2_WatchDataCounter++;
+            USB2_Watch.Reset(); USB2_Watch.Start();
+        }
+        public void Memory_Mode()
+        {
+            //Collect read data
+            USB2_Watch.Start();
+
+            //Initialize and check conditions
+            float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
+            float aDC_Vref = (ADC_VRef.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_VRef.FNumber;
+            float aDC_bitres = (ADC_BitRes.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_BitRes.FNumber;
+            float timeDiv = (TimeDiv.FNumber == 0) ? throw new ArgumentException("Params error") : TimeDiv.FNumber;
+            float voltDiv = (VoltDiv.FNumber == 0) ? throw new ArgumentException("Params error") : VoltDiv.FNumber;
+
+            float zeroTimePoint = ZeroTimePoint.FNumber;
+            float zeroVoltPoint = ZeroVoltPoint.FNumber;
+
+            float timeScaleFactor = (float)1000 / aDC_Clock;
+            float aDCScaleFactor = aDC_Vref / (float)(Math.Pow(2, aDC_bitres) - 1); //mV/ADC_reading
+
+
+            float timeMoveFactor = zeroTimePoint / (timeDiv * USB2_Win_Div / 2);
+            float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
+
+
+            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
+            {
+                USB2_VertexBuffer[0][i] = 0;
+                USB2_VertexBuffer[1][i] = 0;
+                USB2_VertexBuffer[2][i] = 0;
+            }
+
+
+            Int32 RingBufferIndex = USB2_Buffer.Length - 1;
+            /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
+                *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
+                */
+
+            UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
+            UInt32 vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (-timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
+            float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+
+
+            //here we dont pursue performance yet (stop searching after out of bound time element)
+            while (RingBufferIndex >= 3 && !(USB2_BufferIterations == 0 && RingBufferIndex < USB2_BufferPosition16))
+            {
+
+
+                /* Vertexbuffer layout:
+                    * 0                          Datapoint x 682 (=Screenresolution const)
+                    * <------------------------------------------------------------------------->
+                    *   <------------------------------------------------>
+                    *                   1 DATAPOINT
+                    *   <-------------> + <-----------> + <-------------->
+                    *      LOWER             MID               UPPER
+                    *   {Tick;Reading}  +  {Tick;Reading}  + {Tick;Reading}
+                    *      0      1           2      3          4       5
+                    *   Each vertexbuffer item = {Datapoint, # of occurences, Average}
+                    *   
+                    *   
+                    */
+
+                //Check if valid measurement
+                if (USB2_Buffer[RingBufferIndex] != 65530 && USB2_Buffer[RingBufferIndex - 1] != 65530)
+                {
+                    //if valid measurement calculate index and ADC_reading
+                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
+                    vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (-timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
+                    aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
+
+                    //Check if ADC reading within time bounds
+                    if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 < USB2_VertexBuffer[0].Length) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
+                    {
+                        if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 >= 0)
+                        {
+                            USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
+                            USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
+                        }
+                    }
+                    else RingBufferIndex = RingBufferIndex; //For performance reasons: time is ordered, so from first out of bound jump out of loop -> cannt apply as memory goes out of bounds for screening full buffer
+                }
+                RingBufferIndex -= 2; //jump per two
+            };
+
+            //Calculate averages
+            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
+            {
+                if (USB2_VertexBuffer[1][i] != 0) USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
+            }
+
+            //Calculate upper and lower limit
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 0)
+            {
+                float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
+
+                for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
+                {
+                    if (USB2_VertexBuffer[1][i] != 0)
+                    {
+                        USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
+                        USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
+                        USB2_VertexBuffer[1][i - 2]++;
+                        USB2_VertexBuffer[1][i + 2]++;
+                    }
+                }
+            }
+
+            //Filter array
+            UInt32 lastDataPosition = 0;
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
+            {
+                float[] USB2_FilterBuffer = new float[USB2_VertexBuffer[2].Length];
+                Array.Clear(USB2_FilterBuffer, 0, USB2_FilterBuffer.Length);
+
+                for (UInt32 i = 0; i < USB2_VertexBuffer[2].Length - 2; i += 2)
+                {
+                    if (USB2_VertexBuffer[2][i] != 0 && USB2_VertexBuffer[2][i] >= -1 && USB2_VertexBuffer[2][i] <= 1)
+                        if (USB2_VertexBuffer[2][i + 1] != 0 && USB2_VertexBuffer[2][i + 1] >= -1 && USB2_VertexBuffer[2][i + 1] <= 1)
+                        {
+                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i]; lastDataPosition++;
+                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i + 1]; lastDataPosition++;
+                        }
+                }
+                Array.Copy(USB2_FilterBuffer, USB2_VertexBuffer[2], USB2_VertexBuffer[2].Length);
+            }
+
+            //Signal Screendraw
+            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
+                OGL_Screen_Status.i2_Set((Int32)lastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            else
+                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
+            while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
+
+            //Performance counting
+            USB2_Watch.Stop(); USB2_WatchData[USB2_WatchDataCounter] = (double)USB2_Watch.ElapsedTicks / Stopwatch.Frequency; if (USB2_WatchDataCounter >= USB2_WatchData.Length - 1) USB2_WatchDataCounter = 0; else USB2_WatchDataCounter++;
+            USB2_Watch.Reset(); USB2_Watch.Start();
+        }
+        public void SetTransformParams(object sender, EventArgs e)
+        {
+        //ZeroVoltPoint.Id = 1;
+        //VoltDiv.Id = 2;
+        //TimeDiv.Id = 3;
+        //ADC_VRef.Id = 4;
+        //ADC_BitRes.Id = 5;
+        //ADC_Clock.Id = 6;
+        try
+        {
+            Number nmbr = (Number)sender;
+            switch (nmbr.Id)
+            {
+                case 1:
+
+                    break;
+                case 2:
+
+                    break;
+                case 3:
+                case 6:
+
+                    break;
+                case 4:
+
+                    break;
+                case 5:
+
+                    break;
+                case 7:
+
+                    break;
+
+                default:
+
+                    break;
+            }
+        }
+        catch (ArgumentException exception)
+        {
+            switch (exception.Message)
+            {
+                default:
+                    TxtUSB2.AppendText(exception.Message);
+                    break;
+                }
+            }
+
+        }
+
+        private void ButMemoryMode_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ButMemoryMode.Text == "Start Memory Mode")
+                {
+                    ButMemoryMode.Enabled = false;
+                    butUSB2.Enabled = false;
+                    ButTUp.Enabled = true;
+                    ButTDown.Enabled = true;
+                    USB2_Mode = 5; //Set mode to memory mode
+                    RdButUSBMode_Memory.Checked = true;
+                    TxtUSB2.Clear();
+                    ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+
+                    ButMemoryMode.Text = "Stop Memory Mode";
+                    ButMemoryMode.Enabled = true;
+
+                    OGL_Screen_Status.i2_Set(0, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
+
+                    Task USB2_ProcessBuffer = Task.Run(() =>
+                    {
+                        //while (Marshal.ReadByte(USB2_Device_Status.i2_Started) == 0);
+                        while (USB2_Mode == 5)
+                        {
+                            Memory_Mode();
+                        }
+                    });
+                }
+                else
+                {
+                    ButMemoryMode.Enabled = false;
+                    butUSB2.Enabled = false;
+                    ButTUp.Enabled = false;
+                    ButTDown.Enabled = false;
+
+                    //Reset TimeAxis container
+
+                    for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
+                    {
+                        this.T_axis[i].FNumber = 0 + (i - this.Lbl_T_Axis.GetUpperBound(0)) * TimeDiv.FNumber;
+                        this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
+                    } //Every time axis is redrawn zero point needs reset
+                    ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+
+                    USB2_Mode = 1;
+                    RdButUSBMode_Standard.Checked = true;
+
+                    OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
+
+                    TxtUSB2.Clear();
+                    TxtUSB2.AppendText("Memory mode stopped");
+
+                    ButMemoryMode.Text = "Start Memory Mode";
+                    ButMemoryMode.Enabled = true; 
+                    butUSB2.Enabled = true;
+                }
+            }
+            catch (ArgumentException exception)
+            {
+                USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_Started, ChkListUSBState, 1);
+                USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_Stopped, ChkListUSBState, 3);
+                USB2_Device_Status.i2_Set(1, USB2_Device_Status.i2_Errored, ChkListUSBState, 4);
+                switch (exception.Message)
+                {
+                    case "USB not initialized":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("USB could not be initialized within 500 ms");
+                        break;
+                    case "1":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Could not open the device.");
+                        break;
+                    case "2":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Could not get descriptor.");
+                        break;
+                    case "3":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Could not get interface.");
+                        break;
+                    case "4":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Failed to get USB pipe. ");
+                        break;
+                    case "5":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Interval information or Maximum bytes interval invalid. ");
+                        break;
+                    case "6":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Transfer characteristics couldn't be set. ");
+                        break;
+                    case "7":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Overlapped structure couldn't be set. ");
+                        break;
+                    case "8":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Overlapped events couldn't be set. ");
+                        break;
+                    case "9":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Isochronous Packets couldn't be created. ");
+                        break;
+                    case "10":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Isochronous buffer couldn't be registred. Probably wrongly sized databuffer.");
+                        break;
+                    case "11":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Pipe couldn't be reset. ");
+                        break;
+                    case "12":
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText("\r\n Buffer not set as a multiple of framesize. ");
+                        break;
+                    default:
+                        TxtUSB2.Clear();
+                        TxtUSB2.AppendText(exception.Message);
+                        break;
+                }
+            }
+
+
+            USB2_Device_Status.i2_UpdateChkList(ChkListUSBState);
+            USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
+           
+        }
+
+        private void CmbVoltDiv_Validating(object sender, CancelEventArgs e)
+        {
+            ComboBox ComboList = (ComboBox)sender;
+            int count = 0;
+            int index = 0;
+            foreach (object item in ComboList.Items) { if (ComboList.Text == item.ToString()) count++; }
+            if (count == 0)
+            {
+                index = ComboList.Items.Add(ComboList.Text);
+                ComboList.SelectedIndex = index;
+                CmbVoltDiv_SelectedValueChanged(sender, EventArgs.Empty);
+            }
+        }
+
+        private void CmbVoltDiv_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == (Keys) 13) CmbTimeDiv.Select();
+        }
+
+        private void CmbTimeDiv_Validating(object sender, CancelEventArgs e)
+        {
+            ComboBox ComboList = (ComboBox)sender;
+            int count = 0;
+            int index = 0;
+            foreach (object item in ComboList.Items) { if (ComboList.Text == item.ToString()) count++; }
+            if (count == 0)
+            {
+                index = ComboList.Items.Add(ComboList.Text);
+                ComboList.SelectedIndex = index;
+                CmbTimeDiv_SelectedValueChanged(sender, EventArgs.Empty);
+            }
+        }
+
+        private void CmbTimeDiv_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == (Keys)13) CmbVoltDiv.Select();
+        }
+
+        private void ButTUp_Click(object sender, EventArgs e)
+        {
+            TimeDiv.FNumber = TimeDiv.gFlt(this.CmbTimeDiv.Text);
+            float Offset = TimeDiv.FNumber;//10f;
+            for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
+            {
+                this.T_axis[i].FNumber = this.T_axis[i].FNumber + Offset;
+                this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
+            }
+            ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+        }
+
+        private void ButTDown_Click(object sender, EventArgs e)
+        {
+            TimeDiv.FNumber = TimeDiv.gFlt(this.CmbTimeDiv.Text);
+            float Offset = -TimeDiv.FNumber;//10f;
+            for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
+            {
+                this.T_axis[i].FNumber = this.T_axis[i].FNumber + Offset;
+                this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
+            }
+            ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+
+        }
+
+        private void TrckTTrigger_MouseUp(object sender, MouseEventArgs e)
+        {
+            USB2_VertexBufferTrigger[0] = (float) TrckTTrigger.Value / 1000 * 2f -1f;
+            USB2_VertexBufferTrigger[1] = (float) -1.0f;
+            USB2_VertexBufferTrigger[2] = (float) TrckTTrigger.Value / 1000 * 2f - 1f;
+            USB2_VertexBufferTrigger[3] = (float) 1.0f;
+        }
+        private void TrckVTrigger_MouseUp(object sender, MouseEventArgs e)
+        {
+            USB2_VertexBufferTrigger[4] = (float)-1.0f;
+            USB2_VertexBufferTrigger[5] = (float)TrckVTrigger.Value / 1000 * 2f - 1f;
+            USB2_VertexBufferTrigger[6] = (float)1.0f;
+            USB2_VertexBufferTrigger[7] = (float)TrckVTrigger.Value / 1000 * 2f - 1f;
+        }
+
+        private void RdButUSBMode_Triggered_CheckedChanged(object sender, EventArgs e)
+        {
+            USB2_Mode = 4;
+        }
+
+        private void RdButUSBMode_Roll_CheckedChanged(object sender, EventArgs e)
+        {
+            USB2_Mode = 3;
+        }
+
+        private void RdButUSBMode_Standard_CheckedChanged(object sender, EventArgs e)
+        {
+            USB2_Mode = 1;
+        }
+
+        private void RdButUSBMode_Memory_CheckedChanged(object sender, EventArgs e)
+        {
+            USB2_Mode = 5;
+        }
+
+        private void ChkoptionExtrapolated_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ChkoptionExtrapolated.Checked == true)
+                OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Extrapolate, null, 0);
+            else
+                OGL_Screen_Status.i2_Set(0, OGL_Screen_Status.i2_USB2_OGL_Extrapolate, null, 0);
+        }
     }
 }
+

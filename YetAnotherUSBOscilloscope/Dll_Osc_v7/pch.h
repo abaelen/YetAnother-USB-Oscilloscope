@@ -7,10 +7,12 @@
 #ifndef PCH_H
 #define PCH_H
 
-#define SHADER_VERTEX_RASTER_PATH "C:\\Users\\Gebruiker\\source\\repos\\Osc_v5\\Dll_Osc_v7\\TransformRaster.vertexshader"
-#define SHADER_COLOR_RASTER_PATH "C:\\Users\\Gebruiker\\source\\repos\\Osc_v5\\Dll_Osc_v7\\ColorRaster.fragmentshader"
-#define SHADER_VERTEX_DATA_PATH "C:\\Users\\Gebruiker\\source\\repos\\Osc_v5\\Dll_Osc_v7\\TransformData.vertexshader"
-#define SHADER_COLOR_DATA_PATH "C:\\Users\\Gebruiker\\source\\repos\\Osc_v5\\Dll_Osc_v7\\ColorData.fragmentshader"
+#define SHADER_VERTEX_RASTER_PATH "C:\\Users\\Gebruiker\\Documents\\OneDrive\\Elec Projects\\Github\\YetAnother-USB-Oscilloscope\\YetAnotherUSBOscilloscope\\Dll_Osc_v7\\TransformRaster.vertexshader"
+#define SHADER_COLOR_RASTER_PATH "C:\\Users\\Gebruiker\\Documents\\OneDrive\\Elec Projects\\Github\\YetAnother-USB-Oscilloscope\\YetAnotherUSBOscilloscope\\Dll_Osc_v7\\ColorRaster.fragmentshader"
+#define SHADER_VERTEX_TRIGGER_PATH "C:\\Users\\Gebruiker\\Documents\\OneDrive\\Elec Projects\\Github\\YetAnother-USB-Oscilloscope\\YetAnotherUSBOscilloscope\\Dll_Osc_v7\\TransformTrigger.vertexshader"
+#define SHADER_COLOR_TRIGGER_PATH "C:\\Users\\Gebruiker\\Documents\\OneDrive\\Elec Projects\\Github\\YetAnother-USB-Oscilloscope\\YetAnotherUSBOscilloscope\\Dll_Osc_v7\\ColorTrigger.fragmentshader"
+#define SHADER_VERTEX_DATA_PATH "C:\\Users\\Gebruiker\\Documents\\OneDrive\\Elec Projects\\Github\\YetAnother-USB-Oscilloscope\\YetAnotherUSBOscilloscope\\Dll_Osc_v7\\TransformData.vertexshader"
+#define SHADER_COLOR_DATA_PATH "C:\\Users\\Gebruiker\\Documents\\OneDrive\\Elec Projects\\Github\\YetAnother-USB-Oscilloscope\\YetAnotherUSBOscilloscope\\Dll_Osc_v7\\ColorData.fragmentshader"
 
 #define WIN_W 682
 #define WIN_H 682

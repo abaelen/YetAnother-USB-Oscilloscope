@@ -28,8 +28,7 @@ namespace Osc_v5
             {
                 components.Dispose();
             }
-            //TskOpenGL.Dispose();
-            NativeMethods.OGL_Window_Dispose();
+
             base.Dispose(disposing);
         }
 
@@ -44,40 +43,32 @@ namespace Osc_v5
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.ButStartStopADC = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.TrckVTrigger = new System.Windows.Forms.TrackBar();
+            this.ButTDown = new System.Windows.Forms.Button();
+            this.ButTUp = new System.Windows.Forms.Button();
+            this.TrckTTrigger = new System.Windows.Forms.TrackBar();
             this.CmbTimeDiv = new System.Windows.Forms.ComboBox();
             this.TxtZeroVolt = new System.Windows.Forms.TextBox();
             this.CmbVoltDiv = new System.Windows.Forms.ComboBox();
             this.ButSetToZero = new System.Windows.Forms.Button();
             this.ButVUp = new System.Windows.Forms.Button();
             this.ButVDown = new System.Windows.Forms.Button();
-            this.panel2 = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.TxtADC_Vref = new System.Windows.Forms.MaskedTextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.TxtADC_Res = new System.Windows.Forms.MaskedTextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.lblFPS = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.CmbRB_Size = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
             this.LblADC_Res_V = new System.Windows.Forms.Label();
             this.ChkoptionExtrapolated = new System.Windows.Forms.CheckBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.LblTmrBuildScreen = new System.Windows.Forms.Label();
-            this.LblTmrDrawScreen = new System.Windows.Forms.Label();
-            this.LblTmrTransfdata = new System.Windows.Forms.Label();
-            this.LblTmrWaitfordata = new System.Windows.Forms.Label();
             this.CmbmsSleep = new System.Windows.Forms.ComboBox();
             this.label14 = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
             this.LblTmrSuspended = new System.Windows.Forms.Label();
             this.ChkOptionFilterOutliers = new System.Windows.Forms.CheckBox();
-            this.TxtUSB_State = new System.Windows.Forms.TextBox();
             this.label16 = new System.Windows.Forms.Label();
             this.TxtADC_Clock = new System.Windows.Forms.MaskedTextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -93,59 +84,109 @@ namespace Osc_v5
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.label23 = new System.Windows.Forms.Label();
             this.CmbStatRefresh = new System.Windows.Forms.ComboBox();
-            this.Lbldpx = new System.Windows.Forms.Label();
-            this.Lbldfx = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.LblUSBConnected = new System.Windows.Forms.Label();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.label22 = new System.Windows.Forms.Label();
-            this.LblUSBTransfers = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.TxtADCCheckPatternLength = new System.Windows.Forms.MaskedTextBox();
-            this.TxtADCMeasureLength = new System.Windows.Forms.MaskedTextBox();
-            this.TxtADCTickLength = new System.Windows.Forms.MaskedTextBox();
-            this.LblADCCheckPatternLength = new System.Windows.Forms.Label();
-            this.TxtADCCheckPattern = new System.Windows.Forms.MaskedTextBox();
-            this.LblADCCheckPattern = new System.Windows.Forms.Label();
-            this.LblADCMeasureLength = new System.Windows.Forms.Label();
-            this.LblADCTickLength = new System.Windows.Forms.Label();
-            this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.TmrRefresh = new System.Windows.Forms.Timer(this.components);
+            this.TxtUSB2 = new System.Windows.Forms.TextBox();
+            this.butUSB2 = new System.Windows.Forms.Button();
+            this.ChkListUSBInit = new System.Windows.Forms.CheckedListBox();
+            this.ChkListUSBState = new System.Windows.Forms.CheckedListBox();
+            this.ChkListOGLSuspended = new System.Windows.Forms.CheckedListBox();
+            this.ButMemoryMode = new System.Windows.Forms.Button();
+            this.GrpBoxUSBMode = new System.Windows.Forms.GroupBox();
+            this.RdButUSBMode_Memory = new System.Windows.Forms.RadioButton();
+            this.RdButUSBMode_Triggered = new System.Windows.Forms.RadioButton();
+            this.RdButUSBMode_Roll = new System.Windows.Forms.RadioButton();
+            this.RdButUSBMode_Standard = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.TrckVTrigger)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.TrckTTrigger)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
-            this.groupBox4.SuspendLayout();
-            this.groupBox5.SuspendLayout();
+            this.GrpBoxUSBMode.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // ButStartStopADC
-            // 
-            this.ButStartStopADC.Location = new System.Drawing.Point(867, 138);
-            this.ButStartStopADC.Name = "ButStartStopADC";
-            this.ButStartStopADC.Size = new System.Drawing.Size(71, 75);
-            this.ButStartStopADC.TabIndex = 1;
-            this.ButStartStopADC.Text = "Connect to device";
-            this.ButStartStopADC.UseVisualStyleBackColor = true;
-            this.ButStartStopADC.Click += new System.EventHandler(this.ButStartStopADC_Click);
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.panel1.Controls.Add(this.panel2);
+            this.panel1.Controls.Add(this.TrckVTrigger);
+            this.panel1.Controls.Add(this.ButTDown);
+            this.panel1.Controls.Add(this.ButTUp);
+            this.panel1.Controls.Add(this.TrckTTrigger);
             this.panel1.Controls.Add(this.CmbTimeDiv);
             this.panel1.Controls.Add(this.TxtZeroVolt);
             this.panel1.Controls.Add(this.CmbVoltDiv);
             this.panel1.Controls.Add(this.ButSetToZero);
             this.panel1.Controls.Add(this.ButVUp);
             this.panel1.Controls.Add(this.ButVDown);
-            this.panel1.Controls.Add(this.panel2);
             this.panel1.Location = new System.Drawing.Point(0, 2);
             this.panel1.Margin = new System.Windows.Forms.Padding(0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(837, 816);
             this.panel1.TabIndex = 3;
+            // 
+            // panel2
+            // 
+            this.panel2.BackColor = System.Drawing.SystemColors.Info;
+            this.panel2.Location = new System.Drawing.Point(68, 68);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(682, 682);
+            this.panel2.TabIndex = 0;
+            // 
+            // TrckVTrigger
+            // 
+            this.TrckVTrigger.Location = new System.Drawing.Point(33, 53);
+            this.TrckVTrigger.Maximum = 1000;
+            this.TrckVTrigger.Name = "TrckVTrigger";
+            this.TrckVTrigger.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.TrckVTrigger.Size = new System.Drawing.Size(45, 710);
+            this.TrckVTrigger.TabIndex = 67;
+            this.TrckVTrigger.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TrckVTrigger_MouseUp);
+            // 
+            // ButTDown
+            // 
+            this.ButTDown.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.ButTDown.Enabled = false;
+            this.ButTDown.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.ButTDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ButTDown.ForeColor = System.Drawing.SystemColors.ActiveCaption;
+            this.ButTDown.Location = new System.Drawing.Point(374, 793);
+            this.ButTDown.Margin = new System.Windows.Forms.Padding(0);
+            this.ButTDown.Name = "ButTDown";
+            this.ButTDown.Size = new System.Drawing.Size(20, 20);
+            this.ButTDown.TabIndex = 68;
+            this.ButTDown.Text = "<";
+            this.ButTDown.UseMnemonic = false;
+            this.ButTDown.UseVisualStyleBackColor = false;
+            this.ButTDown.Click += new System.EventHandler(this.ButTDown_Click);
+            // 
+            // ButTUp
+            // 
+            this.ButTUp.BackColor = System.Drawing.SystemColors.WindowFrame;
+            this.ButTUp.Enabled = false;
+            this.ButTUp.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.ButTUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ButTUp.ForeColor = System.Drawing.SystemColors.ActiveCaption;
+            this.ButTUp.Location = new System.Drawing.Point(411, 793);
+            this.ButTUp.Margin = new System.Windows.Forms.Padding(0);
+            this.ButTUp.Name = "ButTUp";
+            this.ButTUp.Size = new System.Drawing.Size(20, 20);
+            this.ButTUp.TabIndex = 67;
+            this.ButTUp.Text = ">";
+            this.ButTUp.UseVisualStyleBackColor = false;
+            this.ButTUp.Click += new System.EventHandler(this.ButTUp_Click);
+            // 
+            // TrckTTrigger
+            // 
+            this.TrckTTrigger.Location = new System.Drawing.Point(56, 769);
+            this.TrckTTrigger.Margin = new System.Windows.Forms.Padding(1);
+            this.TrckTTrigger.Maximum = 1000;
+            this.TrckTTrigger.Name = "TrckTTrigger";
+            this.TrckTTrigger.Size = new System.Drawing.Size(708, 45);
+            this.TrckTTrigger.TabIndex = 67;
+            this.TrckTTrigger.TickStyle = System.Windows.Forms.TickStyle.TopLeft;
+            this.TrckTTrigger.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TrckTTrigger_MouseUp);
             // 
             // CmbTimeDiv
             // 
@@ -167,6 +208,8 @@ namespace Osc_v5
             this.CmbTimeDiv.Size = new System.Drawing.Size(67, 21);
             this.CmbTimeDiv.TabIndex = 15;
             this.CmbTimeDiv.SelectedValueChanged += new System.EventHandler(this.CmbTimeDiv_SelectedValueChanged);
+            this.CmbTimeDiv.KeyUp += new System.Windows.Forms.KeyEventHandler(this.CmbTimeDiv_KeyUp);
+            this.CmbTimeDiv.Validating += new System.ComponentModel.CancelEventHandler(this.CmbTimeDiv_Validating);
             // 
             // TxtZeroVolt
             // 
@@ -194,6 +237,8 @@ namespace Osc_v5
             this.CmbVoltDiv.Size = new System.Drawing.Size(67, 21);
             this.CmbVoltDiv.TabIndex = 14;
             this.CmbVoltDiv.SelectedValueChanged += new System.EventHandler(this.CmbVoltDiv_SelectedValueChanged);
+            this.CmbVoltDiv.KeyUp += new System.Windows.Forms.KeyEventHandler(this.CmbVoltDiv_KeyUp);
+            this.CmbVoltDiv.Validating += new System.ComponentModel.CancelEventHandler(this.CmbVoltDiv_Validating);
             // 
             // ButSetToZero
             // 
@@ -239,14 +284,6 @@ namespace Osc_v5
             this.ButVDown.Text = "-";
             this.ButVDown.UseVisualStyleBackColor = false;
             this.ButVDown.Click += new System.EventHandler(this.ButVDown_Click);
-            // 
-            // panel2
-            // 
-            this.panel2.BackColor = System.Drawing.SystemColors.Info;
-            this.panel2.Location = new System.Drawing.Point(68, 68);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(682, 682);
-            this.panel2.TabIndex = 0;
             // 
             // label2
             // 
@@ -305,32 +342,6 @@ namespace Osc_v5
             this.lblFPS.TabIndex = 11;
             this.lblFPS.Text = "Init...";
             // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(3, 11);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(132, 13);
-            this.label5.TabIndex = 12;
-            this.label5.Text = "Datapoints read per frame:";
-            // 
-            // CmbRB_Size
-            // 
-            this.CmbRB_Size.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CmbRB_Size.Items.AddRange(new object[] {
-            "65536‬",
-            "32768‬",
-            "16384‬",
-            "8192‬",
-            "4096‬",
-            "2048‬",
-            "1024"});
-            this.CmbRB_Size.Location = new System.Drawing.Point(30, 50);
-            this.CmbRB_Size.Name = "CmbRB_Size";
-            this.CmbRB_Size.Size = new System.Drawing.Size(72, 21);
-            this.CmbRB_Size.TabIndex = 11;
-            this.CmbRB_Size.SelectionChangeCommitted += new System.EventHandler(this.CmbRB_Size_SelectionChangeCommitted);
-            // 
             // label8
             // 
             this.label8.AutoSize = true;
@@ -355,81 +366,13 @@ namespace Osc_v5
             this.ChkoptionExtrapolated.AutoSize = true;
             this.ChkoptionExtrapolated.Checked = true;
             this.ChkoptionExtrapolated.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ChkoptionExtrapolated.Location = new System.Drawing.Point(869, 219);
+            this.ChkoptionExtrapolated.Location = new System.Drawing.Point(869, 351);
             this.ChkoptionExtrapolated.Name = "ChkoptionExtrapolated";
             this.ChkoptionExtrapolated.Size = new System.Drawing.Size(110, 17);
             this.ChkoptionExtrapolated.TabIndex = 2;
             this.ChkoptionExtrapolated.Text = "Extrapolate points";
             this.ChkoptionExtrapolated.UseVisualStyleBackColor = true;
             this.ChkoptionExtrapolated.CheckedChanged += new System.EventHandler(this.ChkoptionExtrapolated_CheckedChanged);
-            // 
-            // label10
-            // 
-            this.label10.Location = new System.Drawing.Point(28, 90);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(114, 15);
-            this.label10.TabIndex = 24;
-            this.label10.Text = "Time to build screen:";
-            // 
-            // label11
-            // 
-            this.label11.Location = new System.Drawing.Point(28, 109);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(114, 15);
-            this.label11.TabIndex = 25;
-            this.label11.Text = "Time to draw screen:";
-            // 
-            // label12
-            // 
-            this.label12.Location = new System.Drawing.Point(28, 131);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(114, 15);
-            this.label12.TabIndex = 26;
-            this.label12.Text = "Time to transform data:";
-            // 
-            // label13
-            // 
-            this.label13.Location = new System.Drawing.Point(28, 153);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(114, 15);
-            this.label13.TabIndex = 27;
-            this.label13.Text = "Time to collect data:";
-            // 
-            // LblTmrBuildScreen
-            // 
-            this.LblTmrBuildScreen.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblTmrBuildScreen.Location = new System.Drawing.Point(161, 90);
-            this.LblTmrBuildScreen.Name = "LblTmrBuildScreen";
-            this.LblTmrBuildScreen.Size = new System.Drawing.Size(82, 15);
-            this.LblTmrBuildScreen.TabIndex = 28;
-            this.LblTmrBuildScreen.Text = "Init...";
-            // 
-            // LblTmrDrawScreen
-            // 
-            this.LblTmrDrawScreen.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblTmrDrawScreen.Location = new System.Drawing.Point(161, 109);
-            this.LblTmrDrawScreen.Name = "LblTmrDrawScreen";
-            this.LblTmrDrawScreen.Size = new System.Drawing.Size(82, 15);
-            this.LblTmrDrawScreen.TabIndex = 29;
-            this.LblTmrDrawScreen.Text = "Init...";
-            // 
-            // LblTmrTransfdata
-            // 
-            this.LblTmrTransfdata.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblTmrTransfdata.Location = new System.Drawing.Point(161, 131);
-            this.LblTmrTransfdata.Name = "LblTmrTransfdata";
-            this.LblTmrTransfdata.Size = new System.Drawing.Size(82, 15);
-            this.LblTmrTransfdata.TabIndex = 30;
-            this.LblTmrTransfdata.Text = "Init...";
-            // 
-            // LblTmrWaitfordata
-            // 
-            this.LblTmrWaitfordata.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblTmrWaitfordata.Location = new System.Drawing.Point(161, 153);
-            this.LblTmrWaitfordata.Name = "LblTmrWaitfordata";
-            this.LblTmrWaitfordata.Size = new System.Drawing.Size(82, 15);
-            this.LblTmrWaitfordata.TabIndex = 31;
-            this.LblTmrWaitfordata.Text = "Init...";
             // 
             // CmbmsSleep
             // 
@@ -480,22 +423,13 @@ namespace Osc_v5
             this.ChkOptionFilterOutliers.AutoSize = true;
             this.ChkOptionFilterOutliers.Checked = true;
             this.ChkOptionFilterOutliers.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ChkOptionFilterOutliers.Location = new System.Drawing.Point(869, 242);
+            this.ChkOptionFilterOutliers.Location = new System.Drawing.Point(878, 514);
             this.ChkOptionFilterOutliers.Name = "ChkOptionFilterOutliers";
             this.ChkOptionFilterOutliers.Size = new System.Drawing.Size(84, 17);
             this.ChkOptionFilterOutliers.TabIndex = 3;
             this.ChkOptionFilterOutliers.Text = "Filter outliers";
             this.ChkOptionFilterOutliers.UseVisualStyleBackColor = true;
             this.ChkOptionFilterOutliers.CheckedChanged += new System.EventHandler(this.ChkOptionFilterOutliers_CheckedChanged);
-            // 
-            // TxtUSB_State
-            // 
-            this.TxtUSB_State.Location = new System.Drawing.Point(944, 181);
-            this.TxtUSB_State.Multiline = true;
-            this.TxtUSB_State.Name = "TxtUSB_State";
-            this.TxtUSB_State.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TxtUSB_State.Size = new System.Drawing.Size(219, 32);
-            this.TxtUSB_State.TabIndex = 37;
             // 
             // label16
             // 
@@ -538,7 +472,7 @@ namespace Osc_v5
             // pictureBox1
             // 
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-            this.pictureBox1.Location = new System.Drawing.Point(1039, 11);
+            this.pictureBox1.Location = new System.Drawing.Point(1094, 2);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(106, 31);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -549,7 +483,7 @@ namespace Osc_v5
             // 
             this.label17.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label17.Font = new System.Drawing.Font("Candara", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.Location = new System.Drawing.Point(1039, 45);
+            this.label17.Location = new System.Drawing.Point(1094, 36);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(104, 15);
             this.label17.TabIndex = 43;
@@ -559,7 +493,7 @@ namespace Osc_v5
             // 
             this.label18.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label18.Font = new System.Drawing.Font("Candara", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label18.Location = new System.Drawing.Point(1039, 61);
+            this.label18.Location = new System.Drawing.Point(1094, 52);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(104, 21);
             this.label18.TabIndex = 44;
@@ -569,7 +503,7 @@ namespace Osc_v5
             // 
             this.label19.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label19.Font = new System.Drawing.Font("Candara", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label19.Location = new System.Drawing.Point(1039, 76);
+            this.label19.Location = new System.Drawing.Point(1094, 67);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(104, 21);
             this.label19.TabIndex = 45;
@@ -579,7 +513,7 @@ namespace Osc_v5
             // 
             this.label20.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label20.Font = new System.Drawing.Font("Candara", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label20.Location = new System.Drawing.Point(1039, 91);
+            this.label20.Location = new System.Drawing.Point(1094, 83);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(104, 21);
             this.label20.TabIndex = 46;
@@ -589,7 +523,7 @@ namespace Osc_v5
             // 
             this.label21.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label21.Font = new System.Drawing.Font("Candara", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label21.Location = new System.Drawing.Point(1039, 106);
+            this.label21.Location = new System.Drawing.Point(1094, 97);
             this.label21.Name = "label21";
             this.label21.Size = new System.Drawing.Size(104, 15);
             this.label21.TabIndex = 47;
@@ -601,7 +535,7 @@ namespace Osc_v5
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.TxtADC_Res);
             this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Location = new System.Drawing.Point(878, 412);
+            this.groupBox1.Location = new System.Drawing.Point(868, 449);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(280, 55);
             this.groupBox1.TabIndex = 48;
@@ -613,7 +547,7 @@ namespace Osc_v5
             this.groupBox2.Controls.Add(this.label16);
             this.groupBox2.Controls.Add(this.TxtADC_Vref);
             this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Location = new System.Drawing.Point(878, 355);
+            this.groupBox2.Location = new System.Drawing.Point(868, 387);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(279, 56);
             this.groupBox2.TabIndex = 49;
@@ -623,24 +557,12 @@ namespace Osc_v5
             // 
             this.groupBox3.Controls.Add(this.label23);
             this.groupBox3.Controls.Add(this.CmbStatRefresh);
-            this.groupBox3.Controls.Add(this.Lbldpx);
             this.groupBox3.Controls.Add(this.LblKSamplePerSec);
-            this.groupBox3.Controls.Add(this.Lbldfx);
             this.groupBox3.Controls.Add(this.label1);
-            this.groupBox3.Controls.Add(this.label7);
-            this.groupBox3.Controls.Add(this.label6);
             this.groupBox3.Controls.Add(this.LblTmrSuspended);
             this.groupBox3.Controls.Add(this.label15);
             this.groupBox3.Controls.Add(this.label14);
             this.groupBox3.Controls.Add(this.CmbmsSleep);
-            this.groupBox3.Controls.Add(this.LblTmrWaitfordata);
-            this.groupBox3.Controls.Add(this.LblTmrTransfdata);
-            this.groupBox3.Controls.Add(this.LblTmrDrawScreen);
-            this.groupBox3.Controls.Add(this.LblTmrBuildScreen);
-            this.groupBox3.Controls.Add(this.label13);
-            this.groupBox3.Controls.Add(this.label12);
-            this.groupBox3.Controls.Add(this.label11);
-            this.groupBox3.Controls.Add(this.label10);
             this.groupBox3.Controls.Add(this.lblFPS);
             this.groupBox3.Controls.Add(this.label4);
             this.groupBox3.Location = new System.Drawing.Point(878, 548);
@@ -672,202 +594,169 @@ namespace Osc_v5
             this.CmbStatRefresh.TabIndex = 65;
             this.CmbStatRefresh.SelectedIndexChanged += new System.EventHandler(this.CmbStatRefresh_SelectedIndexChanged);
             // 
-            // Lbldpx
-            // 
-            this.Lbldpx.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.Lbldpx.Location = new System.Drawing.Point(161, 41);
-            this.Lbldpx.Name = "Lbldpx";
-            this.Lbldpx.Size = new System.Drawing.Size(82, 15);
-            this.Lbldpx.TabIndex = 64;
-            this.Lbldpx.Text = "Init...";
-            // 
-            // Lbldfx
-            // 
-            this.Lbldfx.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.Lbldfx.Location = new System.Drawing.Point(161, 66);
-            this.Lbldfx.Name = "Lbldfx";
-            this.Lbldfx.Size = new System.Drawing.Size(82, 15);
-            this.Lbldfx.TabIndex = 63;
-            this.Lbldfx.Text = "Init...";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(28, 66);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(124, 13);
-            this.label7.TabIndex = 62;
-            this.label7.Text = "% screen shifted / frame:";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(28, 41);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(118, 13);
-            this.label6.TabIndex = 61;
-            this.label6.Text = "Pixels shifted per frame:";
-            // 
-            // LblUSBConnected
-            // 
-            this.LblUSBConnected.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblUSBConnected.Location = new System.Drawing.Point(944, 141);
-            this.LblUSBConnected.Name = "LblUSBConnected";
-            this.LblUSBConnected.Size = new System.Drawing.Size(218, 37);
-            this.LblUSBConnected.TabIndex = 51;
-            this.LblUSBConnected.Text = "Not connected to device";
-            // 
-            // groupBox4
-            // 
-            this.groupBox4.Controls.Add(this.label22);
-            this.groupBox4.Controls.Add(this.LblUSBTransfers);
-            this.groupBox4.Controls.Add(this.label9);
-            this.groupBox4.Controls.Add(this.CmbRB_Size);
-            this.groupBox4.Controls.Add(this.label5);
-            this.groupBox4.Location = new System.Drawing.Point(877, 467);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(283, 82);
-            this.groupBox4.TabIndex = 52;
-            this.groupBox4.TabStop = false;
-            // 
-            // label22
-            // 
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(154, 29);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(98, 13);
-            this.label22.TabIndex = 17;
-            this.label22.Text = "( x1024byte / 1 ms)";
-            // 
-            // LblUSBTransfers
-            // 
-            this.LblUSBTransfers.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LblUSBTransfers.Location = new System.Drawing.Point(183, 50);
-            this.LblUSBTransfers.Name = "LblUSBTransfers";
-            this.LblUSBTransfers.Size = new System.Drawing.Size(35, 15);
-            this.LblUSBTransfers.TabIndex = 16;
-            this.LblUSBTransfers.Text = "Init...";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(138, 11);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(127, 13);
-            this.label9.TabIndex = 15;
-            this.label9.Text = "Number of USB transfers:";
-            // 
-            // TxtADCCheckPatternLength
-            // 
-            this.TxtADCCheckPatternLength.Location = new System.Drawing.Point(135, 10);
-            this.TxtADCCheckPatternLength.Mask = "00bit";
-            this.TxtADCCheckPatternLength.Name = "TxtADCCheckPatternLength";
-            this.TxtADCCheckPatternLength.Size = new System.Drawing.Size(35, 20);
-            this.TxtADCCheckPatternLength.TabIndex = 4;
-            this.TxtADCCheckPatternLength.Text = "7";
-            this.TxtADCCheckPatternLength.ValidatingType = typeof(int);
-            this.TxtADCCheckPatternLength.Leave += new System.EventHandler(this.TxtADCCheckPatternLength_Leave);
-            // 
-            // TxtADCMeasureLength
-            // 
-            this.TxtADCMeasureLength.Location = new System.Drawing.Point(135, 35);
-            this.TxtADCMeasureLength.Mask = "00bit";
-            this.TxtADCMeasureLength.Name = "TxtADCMeasureLength";
-            this.TxtADCMeasureLength.Size = new System.Drawing.Size(35, 20);
-            this.TxtADCMeasureLength.TabIndex = 6;
-            this.TxtADCMeasureLength.Text = "12";
-            this.TxtADCMeasureLength.ValidatingType = typeof(int);
-            this.TxtADCMeasureLength.Leave += new System.EventHandler(this.TxtADCMeasureLength_Leave);
-            // 
-            // TxtADCTickLength
-            // 
-            this.TxtADCTickLength.Location = new System.Drawing.Point(135, 60);
-            this.TxtADCTickLength.Mask = "00bit";
-            this.TxtADCTickLength.Name = "TxtADCTickLength";
-            this.TxtADCTickLength.Size = new System.Drawing.Size(35, 20);
-            this.TxtADCTickLength.TabIndex = 7;
-            this.TxtADCTickLength.Text = "12";
-            this.TxtADCTickLength.ValidatingType = typeof(int);
-            this.TxtADCTickLength.Leave += new System.EventHandler(this.TxtADCTickLength_Leave);
-            // 
-            // LblADCCheckPatternLength
-            // 
-            this.LblADCCheckPatternLength.AutoSize = true;
-            this.LblADCCheckPatternLength.Location = new System.Drawing.Point(9, 13);
-            this.LblADCCheckPatternLength.Name = "LblADCCheckPatternLength";
-            this.LblADCCheckPatternLength.Size = new System.Drawing.Size(114, 13);
-            this.LblADCCheckPatternLength.TabIndex = 40;
-            this.LblADCCheckPatternLength.Text = "Check Pattern Length:";
-            // 
-            // TxtADCCheckPattern
-            // 
-            this.TxtADCCheckPattern.AsciiOnly = true;
-            this.TxtADCCheckPattern.Location = new System.Drawing.Point(226, 10);
-            this.TxtADCCheckPattern.Mask = "0xAA";
-            this.TxtADCCheckPattern.Name = "TxtADCCheckPattern";
-            this.TxtADCCheckPattern.Size = new System.Drawing.Size(35, 20);
-            this.TxtADCCheckPattern.TabIndex = 5;
-            this.TxtADCCheckPattern.Text = "055";
-            this.TxtADCCheckPattern.ValidatingType = typeof(int);
-            this.TxtADCCheckPattern.Leave += new System.EventHandler(this.TxtADCCheckPattern_Leave);
-            // 
-            // LblADCCheckPattern
-            // 
-            this.LblADCCheckPattern.AutoSize = true;
-            this.LblADCCheckPattern.Location = new System.Drawing.Point(179, 13);
-            this.LblADCCheckPattern.Name = "LblADCCheckPattern";
-            this.LblADCCheckPattern.Size = new System.Drawing.Size(44, 13);
-            this.LblADCCheckPattern.TabIndex = 57;
-            this.LblADCCheckPattern.Text = "Pattern:";
-            // 
-            // LblADCMeasureLength
-            // 
-            this.LblADCMeasureLength.AutoSize = true;
-            this.LblADCMeasureLength.Location = new System.Drawing.Point(9, 38);
-            this.LblADCMeasureLength.Name = "LblADCMeasureLength";
-            this.LblADCMeasureLength.Size = new System.Drawing.Size(112, 13);
-            this.LblADCMeasureLength.TabIndex = 58;
-            this.LblADCMeasureLength.Text = "ADC Measure Length:";
-            // 
-            // LblADCTickLength
-            // 
-            this.LblADCTickLength.AutoSize = true;
-            this.LblADCTickLength.Location = new System.Drawing.Point(9, 63);
-            this.LblADCTickLength.Name = "LblADCTickLength";
-            this.LblADCTickLength.Size = new System.Drawing.Size(92, 13);
-            this.LblADCTickLength.TabIndex = 59;
-            this.LblADCTickLength.Text = "ADC Tick Length:";
-            // 
-            // groupBox5
-            // 
-            this.groupBox5.Controls.Add(this.LblADCTickLength);
-            this.groupBox5.Controls.Add(this.LblADCMeasureLength);
-            this.groupBox5.Controls.Add(this.LblADCCheckPattern);
-            this.groupBox5.Controls.Add(this.TxtADCCheckPattern);
-            this.groupBox5.Controls.Add(this.LblADCCheckPatternLength);
-            this.groupBox5.Controls.Add(this.TxtADCTickLength);
-            this.groupBox5.Controls.Add(this.TxtADCMeasureLength);
-            this.groupBox5.Controls.Add(this.TxtADCCheckPatternLength);
-            this.groupBox5.Location = new System.Drawing.Point(877, 263);
-            this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(279, 91);
-            this.groupBox5.TabIndex = 60;
-            this.groupBox5.TabStop = false;
-            // 
             // TmrRefresh
             // 
             this.TmrRefresh.Interval = 1000;
             this.TmrRefresh.Tick += new System.EventHandler(this.TmrRefresh_Tick);
+            // 
+            // TxtUSB2
+            // 
+            this.TxtUSB2.Location = new System.Drawing.Point(1216, 12);
+            this.TxtUSB2.Multiline = true;
+            this.TxtUSB2.Name = "TxtUSB2";
+            this.TxtUSB2.Size = new System.Drawing.Size(262, 100);
+            this.TxtUSB2.TabIndex = 61;
+            // 
+            // butUSB2
+            // 
+            this.butUSB2.Location = new System.Drawing.Point(868, 34);
+            this.butUSB2.Name = "butUSB2";
+            this.butUSB2.Size = new System.Drawing.Size(85, 78);
+            this.butUSB2.TabIndex = 62;
+            this.butUSB2.Text = "Connect to USB device";
+            this.butUSB2.UseVisualStyleBackColor = true;
+            this.butUSB2.Click += new System.EventHandler(this.butUSB2_Click);
+            // 
+            // ChkListUSBInit
+            // 
+            this.ChkListUSBInit.BackColor = System.Drawing.SystemColors.Control;
+            this.ChkListUSBInit.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.ChkListUSBInit.Enabled = false;
+            this.ChkListUSBInit.FormattingEnabled = true;
+            this.ChkListUSBInit.Items.AddRange(new object[] {
+            "USB Device found",
+            "Descriptor retrieved",
+            "Interface retrieved",
+            "Pipe retrieved",
+            "Interval retrieved",
+            "Transfer characteristics set",
+            "Overlapped structure set",
+            "Overlapped events set",
+            "Isochronous packets set",
+            "Isochronous buffer registered",
+            "Pipe reset",
+            "End at Frame check succesfull"});
+            this.ChkListUSBInit.Location = new System.Drawing.Point(868, 150);
+            this.ChkListUSBInit.Name = "ChkListUSBInit";
+            this.ChkListUSBInit.Size = new System.Drawing.Size(177, 180);
+            this.ChkListUSBInit.TabIndex = 63;
+            // 
+            // ChkListUSBState
+            // 
+            this.ChkListUSBState.BackColor = System.Drawing.SystemColors.Control;
+            this.ChkListUSBState.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.ChkListUSBState.Enabled = false;
+            this.ChkListUSBState.FormattingEnabled = true;
+            this.ChkListUSBState.Items.AddRange(new object[] {
+            "Initialized",
+            "Started",
+            "Requested to stop",
+            "Stopped",
+            "Errored"});
+            this.ChkListUSBState.Location = new System.Drawing.Point(959, 37);
+            this.ChkListUSBState.Name = "ChkListUSBState";
+            this.ChkListUSBState.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.ChkListUSBState.Size = new System.Drawing.Size(113, 75);
+            this.ChkListUSBState.TabIndex = 64;
+            // 
+            // ChkListOGLSuspended
+            // 
+            this.ChkListOGLSuspended.BackColor = System.Drawing.SystemColors.Control;
+            this.ChkListOGLSuspended.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.ChkListOGLSuspended.Enabled = false;
+            this.ChkListOGLSuspended.FormattingEnabled = true;
+            this.ChkListOGLSuspended.Items.AddRange(new object[] {
+            "Screen Suspended"});
+            this.ChkListOGLSuspended.Location = new System.Drawing.Point(868, 336);
+            this.ChkListOGLSuspended.Name = "ChkListOGLSuspended";
+            this.ChkListOGLSuspended.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.ChkListOGLSuspended.Size = new System.Drawing.Size(130, 15);
+            this.ChkListOGLSuspended.TabIndex = 65;
+            // 
+            // ButMemoryMode
+            // 
+            this.ButMemoryMode.Location = new System.Drawing.Point(1136, 195);
+            this.ButMemoryMode.Name = "ButMemoryMode";
+            this.ButMemoryMode.Size = new System.Drawing.Size(63, 35);
+            this.ButMemoryMode.TabIndex = 66;
+            this.ButMemoryMode.Text = "Start Memory Mode";
+            this.ButMemoryMode.UseVisualStyleBackColor = true;
+            this.ButMemoryMode.Click += new System.EventHandler(this.ButMemoryMode_Click);
+            // 
+            // GrpBoxUSBMode
+            // 
+            this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Memory);
+            this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Triggered);
+            this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Roll);
+            this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Standard);
+            this.GrpBoxUSBMode.Location = new System.Drawing.Point(1233, 137);
+            this.GrpBoxUSBMode.Name = "GrpBoxUSBMode";
+            this.GrpBoxUSBMode.Size = new System.Drawing.Size(139, 143);
+            this.GrpBoxUSBMode.TabIndex = 67;
+            this.GrpBoxUSBMode.TabStop = false;
+            // 
+            // RdButUSBMode_Memory
+            // 
+            this.RdButUSBMode_Memory.AutoSize = true;
+            this.RdButUSBMode_Memory.Location = new System.Drawing.Point(12, 92);
+            this.RdButUSBMode_Memory.Name = "RdButUSBMode_Memory";
+            this.RdButUSBMode_Memory.Size = new System.Drawing.Size(92, 17);
+            this.RdButUSBMode_Memory.TabIndex = 3;
+            this.RdButUSBMode_Memory.TabStop = true;
+            this.RdButUSBMode_Memory.Text = "Memory Mode";
+            this.RdButUSBMode_Memory.UseVisualStyleBackColor = true;
+            this.RdButUSBMode_Memory.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Memory_CheckedChanged);
+            // 
+            // RdButUSBMode_Triggered
+            // 
+            this.RdButUSBMode_Triggered.AutoSize = true;
+            this.RdButUSBMode_Triggered.Location = new System.Drawing.Point(12, 69);
+            this.RdButUSBMode_Triggered.Name = "RdButUSBMode_Triggered";
+            this.RdButUSBMode_Triggered.Size = new System.Drawing.Size(100, 17);
+            this.RdButUSBMode_Triggered.TabIndex = 2;
+            this.RdButUSBMode_Triggered.TabStop = true;
+            this.RdButUSBMode_Triggered.Text = "Triggered Mode";
+            this.RdButUSBMode_Triggered.UseVisualStyleBackColor = true;
+            this.RdButUSBMode_Triggered.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Triggered_CheckedChanged);
+            // 
+            // RdButUSBMode_Roll
+            // 
+            this.RdButUSBMode_Roll.AutoSize = true;
+            this.RdButUSBMode_Roll.Location = new System.Drawing.Point(12, 46);
+            this.RdButUSBMode_Roll.Name = "RdButUSBMode_Roll";
+            this.RdButUSBMode_Roll.Size = new System.Drawing.Size(73, 17);
+            this.RdButUSBMode_Roll.TabIndex = 1;
+            this.RdButUSBMode_Roll.TabStop = true;
+            this.RdButUSBMode_Roll.Text = "Roll Mode";
+            this.RdButUSBMode_Roll.UseVisualStyleBackColor = true;
+            this.RdButUSBMode_Roll.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Roll_CheckedChanged);
+            // 
+            // RdButUSBMode_Standard
+            // 
+            this.RdButUSBMode_Standard.AutoSize = true;
+            this.RdButUSBMode_Standard.Location = new System.Drawing.Point(12, 23);
+            this.RdButUSBMode_Standard.Name = "RdButUSBMode_Standard";
+            this.RdButUSBMode_Standard.Size = new System.Drawing.Size(98, 17);
+            this.RdButUSBMode_Standard.TabIndex = 0;
+            this.RdButUSBMode_Standard.TabStop = true;
+            this.RdButUSBMode_Standard.Text = "Standard Mode";
+            this.RdButUSBMode_Standard.UseVisualStyleBackColor = true;
+            this.RdButUSBMode_Standard.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Standard_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(1171, 858);
-            this.Controls.Add(this.groupBox5);
-            this.Controls.Add(this.groupBox4);
-            this.Controls.Add(this.LblUSBConnected);
+            this.ClientSize = new System.Drawing.Size(1582, 858);
+            this.Controls.Add(this.GrpBoxUSBMode);
+            this.Controls.Add(this.ButMemoryMode);
+            this.Controls.Add(this.ChkListOGLSuspended);
+            this.Controls.Add(this.butUSB2);
+            this.Controls.Add(this.ChkoptionExtrapolated);
+            this.Controls.Add(this.ChkListUSBState);
+            this.Controls.Add(this.ChkListUSBInit);
+            this.Controls.Add(this.TxtUSB2);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -877,10 +766,7 @@ namespace Osc_v5
             this.Controls.Add(this.label18);
             this.Controls.Add(this.label17);
             this.Controls.Add(this.pictureBox1);
-            this.Controls.Add(this.TxtUSB_State);
             this.Controls.Add(this.ChkOptionFilterOutliers);
-            this.Controls.Add(this.ChkoptionExtrapolated);
-            this.Controls.Add(this.ButStartStopADC);
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
@@ -888,6 +774,8 @@ namespace Osc_v5
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.TrckVTrigger)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.TrckTTrigger)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
@@ -895,17 +783,14 @@ namespace Osc_v5
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            this.groupBox4.ResumeLayout(false);
-            this.groupBox4.PerformLayout();
-            this.groupBox5.ResumeLayout(false);
-            this.groupBox5.PerformLayout();
+            this.GrpBoxUSBMode.ResumeLayout(false);
+            this.GrpBoxUSBMode.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-        private Button ButStartStopADC;
         private Panel panel1;
         private Panel panel2;
         private Button ButSetToZero;
@@ -920,25 +805,14 @@ namespace Osc_v5
         private MaskedTextBox TxtADC_Res;
         private Label label4;
         private Label lblFPS;
-        private Label label5;
-        private ComboBox CmbRB_Size;
         private Label label8;
         private Label LblADC_Res_V;
         private CheckBox ChkoptionExtrapolated;
-        private Label label10;
-        private Label label11;
-        private Label label12;
-        private Label label13;
-        private Label LblTmrBuildScreen;
-        private Label LblTmrDrawScreen;
-        private Label LblTmrTransfdata;
-        private Label LblTmrWaitfordata;
         private ComboBox CmbmsSleep;
         private Label label14;
         private Label label15;
         private Label LblTmrSuspended;
         private CheckBox ChkOptionFilterOutliers;
-        private TextBox TxtUSB_State;
         private Label label16;
         private MaskedTextBox TxtADC_Clock;
         private Label label1;
@@ -952,27 +826,24 @@ namespace Osc_v5
         private GroupBox groupBox1;
         private GroupBox groupBox2;
         private GroupBox groupBox3;
-        private Label LblUSBConnected;
-        private GroupBox groupBox4;
-        private Label LblUSBTransfers;
-        private Label label9;
-        private MaskedTextBox TxtADCCheckPatternLength;
-        private MaskedTextBox TxtADCMeasureLength;
-        private MaskedTextBox TxtADCTickLength;
-        private Label LblADCCheckPatternLength;
-        private MaskedTextBox TxtADCCheckPattern;
-        private Label LblADCCheckPattern;
-        private Label LblADCMeasureLength;
-        private Label LblADCTickLength;
-        private GroupBox groupBox5;
-        private Label Lbldpx;
-        private Label Lbldfx;
-        private Label label7;
-        private Label label6;
-        private Label label22;
         private Timer TmrRefresh;
         private Label label23;
         private ComboBox CmbStatRefresh;
+        private TextBox TxtUSB2;
+        private Button butUSB2;
+        private CheckedListBox ChkListUSBInit;
+        private CheckedListBox ChkListUSBState;
+        private CheckedListBox ChkListOGLSuspended;
+        private Button ButMemoryMode;
+        private Button ButTUp;
+        private Button ButTDown;
+        private TrackBar TrckTTrigger;
+        private TrackBar TrckVTrigger;
+        private GroupBox GrpBoxUSBMode;
+        private RadioButton RdButUSBMode_Triggered;
+        private RadioButton RdButUSBMode_Roll;
+        private RadioButton RdButUSBMode_Standard;
+        private RadioButton RdButUSBMode_Memory;
     }
 }
 
@@ -980,69 +851,76 @@ namespace Osc_v5
 
 internal static class NativeMethods
 {
+
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern bool USB2_Device_Initialize(UInt16[] pBuffer, UInt32 BufferSize8, UInt32 BackBuffersize8, UInt32 PacketSize, UInt32 MicroFrameSize);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Start(UInt32 TaktTime, ulong FrameNumber = 0);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Stop();
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Dispose();
+ 
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Started(IntPtr pStarted);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Stopped(IntPtr pStopped);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_RequestToStop(IntPtr pRequestToStop);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Initialized(IntPtr pInitialized);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Errored(IntPtr pErrored);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_DeviceFound(IntPtr pDeviceFound);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_GetDescriptor(IntPtr pGetDescriptor);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_GetInterface(IntPtr pGetInterface);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_GetIsochPipe(IntPtr pGetIsochPipe);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_GetInterval(IntPtr pGetInterval);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_SetTransferChars(IntPtr pSetTransferChars);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_SetOverlappedStructure(IntPtr pSetOverlappedStructure);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_SetOverlappedEvents(IntPtr pSetOverlappedEvents);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_SetIsochPackets(IntPtr pSetIsochPackets);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_RegisterIsochBuffer(IntPtr pRegisterIsochBuffer);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_ResetPipe(IntPtr pResetPipe);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_EndAtFrame(IntPtr pEndAtFrame);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_Status_Action_ReadIsochPipe(IntPtr pReadIsochPipe);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_BackBufferFilled(IntPtr pBackBufferFilled);
+    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void USB2_Device_BackBufferLocked(IntPtr pBackBufferLocked);
+
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void OGL_Window_Init();
+    public static extern void OGL_Window_Init(UInt32 win_W, float[] vertexBufferData, UInt32 vertexBufferDataSize, float[] vertexBufferTrigger, UInt32 vertexBufferTriggerSize);
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern void OGL_Window_Dispose();
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern void OGL_Window_SetPos(int x, int y);
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr GetWin32Window();
-
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool SendData(UInt32[] Readings, UInt32[] Ticks, Int32 RB_L, Int32 RB_U);
+    public static extern void OGL_Suspended(IntPtr pSuspended);
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool DataProcessed();
-
+    public static extern void OGL_ScreenDrawn(byte ScreenDrawn); //special case with conditional variable on mutex passed by value
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool SendTransformParams(UInt16 ADC_bitres, UInt16 ADC_Vref, UInt16 zeroVolt, UInt16 VoltDiv,
-        float TimeDiv, UInt32 ADC_Clock, bool optionExtrapolated, float msSleep, bool optionFilterOutliers);
-
+    public static extern void OGL_pScreenDrawn(IntPtr pScreenDrawn); 
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool GetStats(float[] InStats);
-
-//    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-//    public static extern bool SetNumberOfSamples(UInt32 NumberOfSamples);
+    public static extern void OGL_Window_Frames(IntPtr pWindow_Frames);
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void DrawData();
+    public static extern void OGL_Extrapolate(IntPtr pExtrapolate);
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool SetSuspended(bool Suspended);
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void Dispose();
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool SetReadingLock(bool ReadLock);
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool SetDataProcessed(bool DataProcessed);
-
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void USB_Init();
-
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_GetState(int[] InResults,long[] InhResults, UInt16[] USBVendor, UInt16[] USBProduct, UInt16[] USBbcd); //need to use Native types, bool for example does not work
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_Sizeof_USB_Result(UInt16[] Sizeof_InResults, UInt16[] Sizeof_InhResults);
-
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_SetBeginReading(bool BeginReading);
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_ReadbufferTransfered(byte[] USB_readbuffer, UInt32[] ADC_Reading, UInt32[] ADC_Tick, Int32 RB_L, Int32 RB_U);
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_ReadyToRead();
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_GetEndReading();
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_SetReadbufferTransfered();
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void USB_SetCloseRequest();
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_ReadyToReportState();
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB_Set_Isoch_Transfer(UInt32 NumberOfSamples, UInt32 ADC_Check_Pattern, UInt32 ADC_Check_Pattern_Length, UInt32 ADC_Measure_Length, UInt32 ADC_Tick_Length);
-    [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_1.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern UInt32 USB_GetIsochTransferCount();
-
-
-
-
+    public static extern void OGL_LastDataPosition(IntPtr pLastDataPosition);
 }
 

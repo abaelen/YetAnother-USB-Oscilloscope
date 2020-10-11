@@ -91,13 +91,13 @@
       <PreprocessorDefinitions>_DEBUG;DLLOSCV7_EXPORTS;_WINDOWS;_USRDLL;WIN32;TW_STATIC;TW_NO_LIB_PRAGMA;TW_NO_DIRECT3D;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR="Debug";GLFW_EXPOSE_NATIVE_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glm-0.9.7.1;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glfw-3.3.2.bin.WIN64\include;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\ogl;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glew-1.13.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glm-0.9.7.1;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glfw-3.3.2.bin.WIN64\include;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\ogl;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glew-2.2.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;C:\Program Files (x86)\glfw-3.3.2.bin.WIN64\lib-vc2019\glfw3.lib;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\OpenGL\external\Debug\GLEW_1130.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glfw-3.3.2.bin.WIN64\lib-vc2019\glfw3.lib;C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\glew-2.2.0\lib\Release\x64\glew32s.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -158,7 +158,6 @@
     <ClInclude Include="GlfwWindow.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ProcessMonitor.h" />
-    <ClInclude Include="ProcessData.h" />
     <ClInclude Include="ProcessScreen.h" />
   </ItemGroup>
   <ItemGroup>
@@ -170,7 +169,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="ProcessData.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
     <ClCompile Include="ProcessScreen.cpp" />
     <ClCompile Include="Source.cpp" />
@@ -178,8 +176,10 @@
   <ItemGroup>
     <None Include="ColorData.fragmentshader" />
     <None Include="ColorRaster.fragmentshader" />
+    <None Include="ColorTrigger.fragmentshader" />
     <None Include="TransformData.vertexshader" />
     <None Include="TransformRaster.vertexshader" />
+    <None Include="TransformTrigger.vertexshader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

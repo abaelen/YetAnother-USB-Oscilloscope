@@ -17,3 +17,4 @@ C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscill
 C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.csproj.CoreCompileInputs.cache
 C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.exe
 C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.pdb
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Debug\Osc_v5.csprojAssemblyReference.cache

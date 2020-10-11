@@ -2,6 +2,17 @@
 #include "GlfwWindow.h"
 #include <stdio.h>
 
+Window::Window()
+{
+	//Empty
+}
+Window::~Window()
+{
+	//Here dispose would be misplaced. The ~ would entail to delete the Screen member itself not its members.
+	//The members should be disposed off in the DLLmain on the thread wich created them.
+	//Also dont use Dispose inside the class but only in the DLLmain
+	//Terminate();
+}
 
 void Window::Init(const uint16_t Win_W, const uint16_t Win_H)
 {
@@ -62,23 +73,25 @@ void Window::FPS(void)
 	double currentTime = glfwGetTime();
 
 	cFrames++;
-	if (currentTime - lastTime >= 1) { // If last prinf() was more than 1 sec ago
-		// printf and reset timer
-		Frames[nbFrames] = 1000 / double(cFrames);
-		//printf("%f ms/frame\n", 1000 / double(nbFrames));
+	if (currentTime - lastTime >= 1) 
+	{ 
+		if(Frames !=NULL) Frames[0] = 1000 / float(cFrames);
 		cFrames = 0;
-		(nbFrames == 1000) ? nbFrames = 1 : nbFrames++;
-		//nbFrames = 0;
-		lastTime += 1.0;
-		/*char str[5]; TCHAR Tstr[4 * 5]; USES_CONVERSION;
-		sprintf(str, "%i", counter);
-		_tcscpy(Tstr, A2T(str));
-		MessageBox(NULL, Tstr, L"values", MB_OK);*/
+		lastTime = glfwGetTime();
 	}
+}
+void Window::Timer_Start(void)
+{
+	if (QueryPerformanceCounter(&PC_Start));
+}
+double Window::Timer_Stop(void)
+{
+	if (QueryPerformanceCounter(&PC_Stop[0]));
+	return ((double)(PC_Stop[0].QuadPart - PC_Start.QuadPart) / (double)(PC_Freq.QuadPart) * 1000.0f);
 }
 bool Window::CloseReq(void)
 {
-	return (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
+	return (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS || glfwWindowShouldClose(window) != 0);
 }
 void Window::Terminate(void)
 {

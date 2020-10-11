@@ -79,7 +79,7 @@ BOOL USB::CallOpenDevice()
 {
     USB_hResult.s.OpenDevice = OpenDevice(&deviceData, &USB_Result.s.noDevice);
     USB_Result.s.CallOpenDevice = (USB_hResult.s.OpenDevice < 0) ? false : true;
- 
+
     return USB_Result.s.CallOpenDevice;
 }
 BOOL USB::CallGetDescriptor()
@@ -229,6 +229,15 @@ BOOL USB::SendIsochInTransfer() {
     USB_Result.s.TransferCompleted = false;
     USB_Result.s.ReadTransfer = true;
     USB_Result.s.FailedToStartRead = false;
+    
+    USB_Result.s.CallGetFrameNumber = WinUsb_GetCurrentFrameNumber(deviceData.WinusbHandle, &frameNumber, &timeStamp);
+
+    if (!USB_Result.s.CallGetFrameNumber)
+    {
+        return USB_Result.s.TransferCompleted;
+    }
+
+    startFrame = frameNumber + 5;
 
     for (ULONG i = 0; i < Isoch_Transfer_Count; i++)
     {
@@ -238,12 +247,13 @@ BOOL USB::SendIsochInTransfer() {
            // Sleep(1);
             USB_Result.s.ReadIsochPipe = WinUsb_ReadIsochPipeAsap(isochReadBufferHandle,i * deviceData.IsochInTransferSize,deviceData.IsochInTransferSize, (i == 0) ? FALSE : TRUE, 1, &isochPackets[i * 1], &overlapped[i]);
         }
- /*       else
+        else
         {
-            printf("Transfer starting at frame %d.\n", startFrame);
-            result = WinUsb_ReadIsochPipe(isochReadBufferHandle,DeviceData->IsochInTransferSize * i,DeviceData->IsochInTransferSize,&startFrame,DeviceData->IsochInPacketCount,&isochPackets[i * DeviceData->IsochInPacketCount],&overlapped[i]);
-            printf("Next transfer frame %d.\n", startFrame);
-        }*/
+            //printf("Transfer starting at frame %d.\n", startFrame);
+            //result = WinUsb_ReadIsochPipe(isochReadBufferHandle,DeviceData->IsochInTransferSize * i,DeviceData->IsochInTransferSize,&startFrame,DeviceData->IsochInPacketCount,&isochPackets[i * DeviceData->IsochInPacketCount],&overlapped[i]);
+            USB_Result.s.ReadIsochPipe = WinUsb_ReadIsochPipe(isochReadBufferHandle, i * deviceData.IsochInTransferSize, deviceData.IsochInTransferSize, &startFrame, 1, &isochPackets[i * 1], &overlapped[i]);
+            //printf("Next transfer frame %d.\n", startFrame);
+        }
 
         if (!USB_Result.s.ReadIsochPipe)
         {
@@ -270,9 +280,9 @@ BOOL USB::SendIsochInTransfer() {
     while (numBytes < (Isoch_Transfer_Count * deviceData.IsochInTransferSize)) {
         //removed the Getoverlappedresult for performance reasons. This resulted in blue screen WDF-vialoation. 
         //With now includeing a while loop to wait for results to come in, blue screen is not occuring anymore.
-    for (ULONG i = 0; i < Isoch_Transfer_Count; i++) {
-        numBytes += isochPackets[i].Length;
-    }
+        for (ULONG i = 0; i < Isoch_Transfer_Count; i++) {
+            numBytes += isochPackets[i].Length;
+        }
     }
     USB_Result.s.TransferCompleted = true;
 

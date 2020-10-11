@@ -27,9 +27,6 @@
     <ClInclude Include="ProcessScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ProcessData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GlfwWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -50,9 +47,6 @@
     <ClCompile Include="ProcessScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ProcessData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GlfwWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -71,6 +65,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="TransformRaster.vertexshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="TransformTrigger.vertexshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ColorTrigger.fragmentshader">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
