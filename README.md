@@ -24,3 +24,7 @@ Next updates:
 - Finetune code (UI parameter handling)
 - Class definitions
 - Introduce FFT transformation (fourier, frequency domain analysis)
+
+<br>
+<img height="700" src="https://github.com/abaelen/YetAnother-USB-Oscilloscope/tree/master/img/YetAnotherOscilloscope.jpg" />
+<br>
