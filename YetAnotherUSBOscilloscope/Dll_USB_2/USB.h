@@ -26,7 +26,7 @@ class _USB_Device
 		public: USB_INTERFACE_DESCRIPTOR Interface; //Structure holding the interface descriptor. Ref. https://www.keil.com/pack/doc/mw/USB/html/_u_s_b__descriptors.html
 		public: uint8_t* BackBuffer;
 		public: uint32_t BackBufferSize8;
-		public: uint16_t* BackBuffer16;
+		public: int16_t* BackBuffer16;
 		
 
 		public: uint8_t* BackBufferFilled;
@@ -91,7 +91,7 @@ class _USB_Device
 			   https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/getting-set-up-to-use-windows-devices-usb
 				The buffer is the ring buffer in which data will be written in first portion defined by the backbuffersize and the totalbuffersize
 				*/
-		public: VOID Initialize(uint16_t* pBuffer, uint32_t BufferSize8, uint32_t BackBufferSize8, uint32_t PacketSize, uint32_t MicroFrameSize);
+		public: VOID Initialize(int16_t* pBuffer, uint32_t BufferSize8, uint32_t BackBufferSize8, uint32_t PacketSize, uint32_t MicroFrameSize);
 
 			   // Disposing of all open handles and frees memory allocations
 		public: VOID Dispose();
@@ -125,7 +125,7 @@ class _USB_Device
 																				BackBufferSize
 					Address of Backbuffer: (uint8_t*) pBuffer16 + Buffersize8 - BackBufferSize			
 				*/
-		private: VOID SetBuffers( uint16_t* pBuffer16,  uint32_t BufferSize8,  uint32_t BackBufferSize8);
+		private: VOID SetBuffers(int16_t* pBuffer16,  uint32_t BufferSize8,  uint32_t BackBufferSize8);
 
 			   //Method to get the Isochronous pipe
 		private: VOID GetIsochPipe();

@@ -37,7 +37,7 @@ _USB_Device USB_Device;
     //To send values, pass a pointer and set the value of the memory space of the pointer
 
 extern "C" {
-      __declspec(dllexport) uint8_t USB2_Device_Initialize(uint16_t* pBuffer16, uint32_t bufferSize8, uint32_t backBufferSize8, uint32_t packetSize, uint32_t microFrameSize)
+      __declspec(dllexport) uint8_t USB2_Device_Initialize(int16_t* pBuffer16, uint32_t bufferSize8, uint32_t backBufferSize8, uint32_t packetSize, uint32_t microFrameSize)
     {
         USB_Device.Initialize(pBuffer16, bufferSize8, backBufferSize8, packetSize, microFrameSize);
         return (uint8_t) USB_Device.Status.Initialized[0];

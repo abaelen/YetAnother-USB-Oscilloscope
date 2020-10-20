@@ -44,6 +44,9 @@ namespace Osc_v5
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.RdButTrSlopeDown = new System.Windows.Forms.RadioButton();
+            this.RdButTrSlopeUp = new System.Windows.Forms.RadioButton();
             this.panel2 = new System.Windows.Forms.Panel();
             this.TrckVTrigger = new System.Windows.Forms.TrackBar();
             this.ButTDown = new System.Windows.Forms.Button();
@@ -93,12 +96,9 @@ namespace Osc_v5
             this.GrpBoxUSBMode = new System.Windows.Forms.GroupBox();
             this.RdButUSBMode_Memory = new System.Windows.Forms.RadioButton();
             this.RdButUSBMode_Triggered = new System.Windows.Forms.RadioButton();
-            this.RdButUSBMode_Roll = new System.Windows.Forms.RadioButton();
             this.RdButUSBMode_Standard = new System.Windows.Forms.RadioButton();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.RdButTrSlopeUp = new System.Windows.Forms.RadioButton();
-            this.RdButTrSlopeDown = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TrckVTrigger)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TrckTTrigger)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -106,7 +106,6 @@ namespace Osc_v5
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.GrpBoxUSBMode.SuspendLayout();
-            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
@@ -129,6 +128,42 @@ namespace Osc_v5
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(837, 816);
             this.panel1.TabIndex = 3;
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.RdButTrSlopeDown);
+            this.groupBox4.Controls.Add(this.RdButTrSlopeUp);
+            this.groupBox4.ForeColor = System.Drawing.SystemColors.ActiveCaption;
+            this.groupBox4.Location = new System.Drawing.Point(770, 670);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(64, 80);
+            this.groupBox4.TabIndex = 71;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Trigger Slope";
+            // 
+            // RdButTrSlopeDown
+            // 
+            this.RdButTrSlopeDown.AutoSize = true;
+            this.RdButTrSlopeDown.Location = new System.Drawing.Point(8, 57);
+            this.RdButTrSlopeDown.Name = "RdButTrSlopeDown";
+            this.RdButTrSlopeDown.Size = new System.Drawing.Size(53, 17);
+            this.RdButTrSlopeDown.TabIndex = 1;
+            this.RdButTrSlopeDown.TabStop = true;
+            this.RdButTrSlopeDown.Text = "Down";
+            this.RdButTrSlopeDown.UseVisualStyleBackColor = true;
+            this.RdButTrSlopeDown.CheckedChanged += new System.EventHandler(this.RdButTrSlopeDown_CheckedChanged);
+            // 
+            // RdButTrSlopeUp
+            // 
+            this.RdButTrSlopeUp.AutoSize = true;
+            this.RdButTrSlopeUp.Location = new System.Drawing.Point(8, 34);
+            this.RdButTrSlopeUp.Name = "RdButTrSlopeUp";
+            this.RdButTrSlopeUp.Size = new System.Drawing.Size(39, 17);
+            this.RdButTrSlopeUp.TabIndex = 0;
+            this.RdButTrSlopeUp.TabStop = true;
+            this.RdButTrSlopeUp.Text = "Up";
+            this.RdButTrSlopeUp.UseVisualStyleBackColor = true;
+            this.RdButTrSlopeUp.CheckedChanged += new System.EventHandler(this.RdButTrSlopeUp_CheckedChanged);
             // 
             // panel2
             // 
@@ -678,7 +713,6 @@ namespace Osc_v5
             // 
             this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Memory);
             this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Triggered);
-            this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Roll);
             this.GrpBoxUSBMode.Controls.Add(this.RdButUSBMode_Standard);
             this.GrpBoxUSBMode.Location = new System.Drawing.Point(1233, 137);
             this.GrpBoxUSBMode.Name = "GrpBoxUSBMode";
@@ -689,7 +723,7 @@ namespace Osc_v5
             // RdButUSBMode_Memory
             // 
             this.RdButUSBMode_Memory.AutoSize = true;
-            this.RdButUSBMode_Memory.Location = new System.Drawing.Point(12, 92);
+            this.RdButUSBMode_Memory.Location = new System.Drawing.Point(12, 69);
             this.RdButUSBMode_Memory.Name = "RdButUSBMode_Memory";
             this.RdButUSBMode_Memory.Size = new System.Drawing.Size(92, 17);
             this.RdButUSBMode_Memory.TabIndex = 3;
@@ -701,7 +735,7 @@ namespace Osc_v5
             // RdButUSBMode_Triggered
             // 
             this.RdButUSBMode_Triggered.AutoSize = true;
-            this.RdButUSBMode_Triggered.Location = new System.Drawing.Point(12, 69);
+            this.RdButUSBMode_Triggered.Location = new System.Drawing.Point(12, 46);
             this.RdButUSBMode_Triggered.Name = "RdButUSBMode_Triggered";
             this.RdButUSBMode_Triggered.Size = new System.Drawing.Size(100, 17);
             this.RdButUSBMode_Triggered.TabIndex = 2;
@@ -709,18 +743,6 @@ namespace Osc_v5
             this.RdButUSBMode_Triggered.Text = "Triggered Mode";
             this.RdButUSBMode_Triggered.UseVisualStyleBackColor = true;
             this.RdButUSBMode_Triggered.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Triggered_CheckedChanged);
-            // 
-            // RdButUSBMode_Roll
-            // 
-            this.RdButUSBMode_Roll.AutoSize = true;
-            this.RdButUSBMode_Roll.Location = new System.Drawing.Point(12, 46);
-            this.RdButUSBMode_Roll.Name = "RdButUSBMode_Roll";
-            this.RdButUSBMode_Roll.Size = new System.Drawing.Size(73, 17);
-            this.RdButUSBMode_Roll.TabIndex = 1;
-            this.RdButUSBMode_Roll.TabStop = true;
-            this.RdButUSBMode_Roll.Text = "Roll Mode";
-            this.RdButUSBMode_Roll.UseVisualStyleBackColor = true;
-            this.RdButUSBMode_Roll.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Roll_CheckedChanged);
             // 
             // RdButUSBMode_Standard
             // 
@@ -733,42 +755,6 @@ namespace Osc_v5
             this.RdButUSBMode_Standard.Text = "Standard Mode";
             this.RdButUSBMode_Standard.UseVisualStyleBackColor = true;
             this.RdButUSBMode_Standard.CheckedChanged += new System.EventHandler(this.RdButUSBMode_Standard_CheckedChanged);
-            // 
-            // groupBox4
-            // 
-            this.groupBox4.Controls.Add(this.RdButTrSlopeDown);
-            this.groupBox4.Controls.Add(this.RdButTrSlopeUp);
-            this.groupBox4.ForeColor = System.Drawing.SystemColors.ActiveCaption;
-            this.groupBox4.Location = new System.Drawing.Point(770, 670);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(64, 80);
-            this.groupBox4.TabIndex = 71;
-            this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "Trigger Slope";
-            // 
-            // RdButTrSlopeUp
-            // 
-            this.RdButTrSlopeUp.AutoSize = true;
-            this.RdButTrSlopeUp.Location = new System.Drawing.Point(8, 34);
-            this.RdButTrSlopeUp.Name = "RdButTrSlopeUp";
-            this.RdButTrSlopeUp.Size = new System.Drawing.Size(39, 17);
-            this.RdButTrSlopeUp.TabIndex = 0;
-            this.RdButTrSlopeUp.TabStop = true;
-            this.RdButTrSlopeUp.Text = "Up";
-            this.RdButTrSlopeUp.UseVisualStyleBackColor = true;
-            this.RdButTrSlopeUp.CheckedChanged += new System.EventHandler(this.RdButTrSlopeUp_CheckedChanged);
-            // 
-            // RdButTrSlopeDown
-            // 
-            this.RdButTrSlopeDown.AutoSize = true;
-            this.RdButTrSlopeDown.Location = new System.Drawing.Point(8, 57);
-            this.RdButTrSlopeDown.Name = "RdButTrSlopeDown";
-            this.RdButTrSlopeDown.Size = new System.Drawing.Size(53, 17);
-            this.RdButTrSlopeDown.TabIndex = 1;
-            this.RdButTrSlopeDown.TabStop = true;
-            this.RdButTrSlopeDown.Text = "Down";
-            this.RdButTrSlopeDown.UseVisualStyleBackColor = true;
-            this.RdButTrSlopeDown.CheckedChanged += new System.EventHandler(this.RdButTrSlopeDown_CheckedChanged);
             // 
             // Form1
             // 
@@ -800,6 +786,8 @@ namespace Osc_v5
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TrckVTrigger)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.TrckTTrigger)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -811,8 +799,6 @@ namespace Osc_v5
             this.groupBox3.PerformLayout();
             this.GrpBoxUSBMode.ResumeLayout(false);
             this.GrpBoxUSBMode.PerformLayout();
-            this.groupBox4.ResumeLayout(false);
-            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -868,7 +854,6 @@ namespace Osc_v5
         private TrackBar TrckVTrigger;
         private GroupBox GrpBoxUSBMode;
         private RadioButton RdButUSBMode_Triggered;
-        private RadioButton RdButUSBMode_Roll;
         private RadioButton RdButUSBMode_Standard;
         private RadioButton RdButUSBMode_Memory;
         private GroupBox groupBox4;
@@ -883,7 +868,7 @@ internal static class NativeMethods
 {
 
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool USB2_Device_Initialize(UInt16[] pBuffer, UInt32 BufferSize8, UInt32 BackBuffersize8, UInt32 PacketSize, UInt32 MicroFrameSize);
+    public static extern bool USB2_Device_Initialize(Int16[] pBuffer, UInt32 BufferSize8, UInt32 BackBuffersize8, UInt32 PacketSize, UInt32 MicroFrameSize);
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern void USB2_Device_Start(UInt32 TaktTime, ulong FrameNumber = 0);
     [DllImport(@"C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_USB_2.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]

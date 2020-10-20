@@ -70,13 +70,14 @@ extern "C"
 			S.ScreenDrawn[0] = true;
 			
 			W.Draw();
-			W.Time = W.Timer_Stop();
+			//W.Time = W.Timer_Stop();
 			//if (W.Time < 4 && W.Time > 0) Sleep(4-W.Time);
-			W.Timer_Start();
+			//W.Timer_Start();
 			//P.CalcTmr();
 			W.FPS();
-			std::unique_lock<std::mutex> lck(S.mutex_);
-			S.cv.wait(lck,[]{return !S.ScreenDrawn[0];}); //puts into a waiting pattern
+			//std::unique_lock<std::mutex> lck(S.mutex_);
+			//S.cv.wait(lck,[]{return !S.ScreenDrawn[0];}); //puts into a waiting pattern
+			while (S.ScreenDrawn[0]==true);
 		}
 
 		//Proper placement of disposal mechanism.
@@ -94,9 +95,9 @@ extern "C"
 	 */
 	__declspec(dllexport) void OGL_ScreenDrawn(bool screenDrawn)
 	{
-		std::unique_lock<std::mutex> lck(S.mutex_);
-		S.ScreenDrawn[0]=screenDrawn;
-		S.cv.notify_one();
+		//std::unique_lock<std::mutex> lck(S.mutex_);
+		//S.ScreenDrawn[0]=screenDrawn;
+		//S.cv.notify_one();
 	}
 	__declspec(dllexport) void OGL_pScreenDrawn(bool* pScreenDrawn)
 	{

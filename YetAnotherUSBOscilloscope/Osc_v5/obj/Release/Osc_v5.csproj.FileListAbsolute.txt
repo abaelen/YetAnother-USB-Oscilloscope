@@ -1,0 +1,10 @@
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Release\Osc_v5.csprojAssemblyReference.cache
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Release\Osc_v5.Form1.resources
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Release\Osc_v5.Properties.Resources.resources
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Release\Osc_v5.csproj.GenerateResource.cache
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Release\Osc_v5.csproj.CoreCompileInputs.cache
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\bin\Release\Osc_v5.exe.config
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\bin\Release\Osc_v5.exe
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\bin\Release\Osc_v5.pdb
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Release\Osc_v5.exe
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Osc_v5\obj\Release\Osc_v5.pdb

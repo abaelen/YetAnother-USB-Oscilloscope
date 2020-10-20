@@ -154,7 +154,7 @@ void Screen::GenerateRaster(void) {
 	MessageBox(NULL, Tstr, L"values", MB_OK);*/
 }
 void Screen::ColorData(void) {
-	for (unsigned int i = 0; i < 6*Win_W/2; i++) {
+	for (unsigned int i = 0; i < sizeof_g_color_buffer_data/3; i++) {
 		g_color_buffer_data[(i * 3) + 0] = 1.0f;// 0.329412f;
 		g_color_buffer_data[(i * 3) + 1] = 1.0f;//0.329412f;
 		g_color_buffer_data[(i * 3) + 2] = 0.0f;//0.329412f;
@@ -214,8 +214,6 @@ void Screen::InitScreen(void)
 	//VBO Generate and Bind
 	glGenBuffers(2, databuffer);
 
-	for (int i = 1; i < sizeof_g_vertex_buffer_data; i += 2) g_vertex_buffer_data[i] = 0.25;
-
 	glBindBuffer(GL_ARRAY_BUFFER, databuffer[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*sizeof_g_vertex_buffer_data, g_vertex_buffer_data, GL_DYNAMIC_DRAW);
 	//glBufferData(GL_ARRAY_BUFFER, sizeof_g_vertex_buffer_data, NULL, GL_DYNAMIC_DRAW);
@@ -258,13 +256,13 @@ void Screen::BuildScreen(void)
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, databuffer[1]); //to ensure data is bound
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * sizeof_g_vertex_buffer_data, g_vertex_buffer_data, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * LastDataPosition[0], g_vertex_buffer_data, GL_DYNAMIC_DRAW);
 	glUseProgram(ShaderData);
 	if (Extrapolate[0] == 1) 
 		glDrawArrays(GL_LINE_STRIP, 0, LastDataPosition[0] / 2);
 	else
 		glDrawArrays(GL_POINTS, 0, LastDataPosition[0]);
-	
+	glClearBufferSubData(GL_ARRAY_BUFFER,GL_R32F,0, sizeof(float) * LastDataPosition[0],GL_R32F_EXT,GL_FLOAT,0);
 
 	glFinish();
 	// Swap buffers

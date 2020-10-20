@@ -1,3 +1,4 @@
-﻿  dllmain.cpp
-C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Dll_Osc_v7\dllmain.cpp(47,45): warning C4390: ';': empty controlled statement found; is this the intent?
+﻿  ProcessScreen.cpp
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Dll_Osc_v7\ProcessScreen.cpp(127,20): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\Dll_Osc_v7\ProcessScreen.cpp(130,20): warning C4018: '<=': signed/unsigned mismatch
   Dll_Osc_v7.vcxproj -> C:\Users\Gebruiker\Documents\OneDrive\Elec Projects\Github\YetAnother-USB-Oscilloscope\YetAnotherUSBOscilloscope\x64\Debug\Dll_Osc_v7.dll

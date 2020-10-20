@@ -35,12 +35,12 @@ VOID _USB_Device::GetInterface()
 	Status.Action.GetInterface[0] = (uint8_t)WinUsb_QueryInterfaceSettings(Handle.WinusbHandle, 0, &Interface);
 }
 
-VOID _USB_Device::SetBuffers( uint16_t* pBackBuffer,  uint32_t bufferSize8,  uint32_t backBufferSize8)
+VOID _USB_Device::SetBuffers(int16_t* pBackBuffer,  uint32_t bufferSize8,  uint32_t backBufferSize8)
 {
 	BackBuffer = NULL;
 	BackBuffer = ((uint8_t*) pBackBuffer)+bufferSize8-backBufferSize8; 
 	BackBufferSize8 = backBufferSize8;
-	BackBuffer16 = (uint16_t *) BackBuffer;
+	BackBuffer16 = (int16_t *) BackBuffer;
 	BackBufferLocked[0] = FALSE;
 }
 
@@ -159,7 +159,7 @@ VOID _USB_Device::ResetPipe()
 
 //To use the Class create a _USB_Device USB member. Then call the USB.Initialize(1023,1,1) eg. 1023 in 1 packet & 1 microframe (as only FS) or USB.Initialize(2046,2,1), ...
 
-VOID _USB_Device::Initialize(uint16_t* pBuffer16, uint32_t bufferSize8, uint32_t backBufferSize8, uint32_t packetSize, uint32_t microFrameSize)
+VOID _USB_Device::Initialize(int16_t* pBuffer16, uint32_t bufferSize8, uint32_t backBufferSize8, uint32_t packetSize, uint32_t microFrameSize)
 {
 	try {
 		//Here dispose would be misplaced. The ~ would entail to delete the Screen member itself not its members.
@@ -252,7 +252,7 @@ VOID _USB_Device::Start(uint32_t TaktTime, ULONG FrameNumber)
 				}
 
 				if (Status.Action.ReadIsochPipe[0] == FALSE && GetLastError() != ERROR_IO_PENDING) { throw "Failed to start a read operation"; }
-
+				//while(GetLastError() == ERROR_IO_PENDING);
 				for (ULONG i = 0; i < Isoch_In_Transfer_Count; i++) //Likewise to the above comment ISOCH_TRANFER_COUNT in our case is 1
 				{
 					BOOL result = WinUsb_GetOverlappedResult(Handle.WinusbHandle, &Overlapped[i], &numBytes, TRUE);

@@ -151,21 +151,24 @@ namespace Osc_v5
             //Init OpenGL window - needs to be here as when window is disposed it clears this Init as well.
             Task TskOpenGL = Task.Run(() =>
             {
-                USB2_VertexBuffer[0] = new float[USB2_Win_W * USB2_NumberOfPointsPerTick * 2]; //actual data
-                USB2_VertexBuffer[1] = new float[USB2_Win_W * USB2_NumberOfPointsPerTick * 2]; //Number of measurements
-                USB2_VertexBuffer[2] = new float[USB2_Win_W * USB2_NumberOfPointsPerTick * 2]; //Average of elements
+                USB2_VertexBuffer[0] = new float[USB2_Win_W * 3 * 2]; //actual data
+                USB2_VertexBuffer[1] = new float[USB2_Win_W * 3 * 2]; //Number of measurements
+                USB2_VertexBuffer[2] = new float[USB2_Win_W * 3 * 2]; //Average of elements
+                USB2_VertexBuffer[3] = new float[(UInt32)Math.Ceiling((double)(USB2_SecondsOfBuffer * 1000 / USB2_MillisecondsPerTransfer * USB2_NumberOfPackets * USB2_TransferSize / 2 * 2))]; //Average of elements
+
                 Array.Clear(USB2_VertexBuffer[0], 0, USB2_VertexBuffer[0].Length);
                 Array.Clear(USB2_VertexBuffer[1], 0, USB2_VertexBuffer[1].Length);
                 Array.Clear(USB2_VertexBuffer[2], 0, USB2_VertexBuffer[2].Length);
+                Array.Clear(USB2_VertexBuffer[3], 0, USB2_VertexBuffer[3].Length);
 
                 Array.Clear(USB2_VertexBufferTrigger, 0, USB2_VertexBufferTrigger.Length);
 
                 OGL_Screen_Status.i2_ConnectPtrs();
                 OGL_Screen_Status.i2_SetAll(0,this);
                 OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_Suspended, ChkListOGLSuspended, 0);
-                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0);
+                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[3].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0);
 
-                NativeMethods.OGL_Window_Init(USB2_Win_W, USB2_VertexBuffer[2], (UInt32)USB2_VertexBuffer[2].Length, USB2_VertexBufferTrigger, (UInt32) USB2_VertexBufferTrigger.Length);
+                NativeMethods.OGL_Window_Init(USB2_Win_W, USB2_VertexBuffer[3], (UInt32)USB2_VertexBuffer[3].Length, USB2_VertexBufferTrigger, (UInt32) USB2_VertexBufferTrigger.Length);
 
             });
 
@@ -261,8 +264,7 @@ namespace Osc_v5
             ADC_VRef.FNumber = ADC_VRef.gFlt(TxtADC_Vref.Text);
             //Zero Volt point number
             ZeroVoltPoint.FNumber = V_axis[(UInt16)(Lbl_V_Axis.GetUpperBound(0) + 1) / 2].FNumber;
-            //Zero Time point number
-            ZeroTimePoint.FNumber = T_axis[(UInt16)(Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
+
             //USB_Mode default
             USB2_Mode = 1;
             //Trigger slope default
@@ -382,7 +384,9 @@ namespace Osc_v5
             for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
             {
                 if (this.T_axis[i] == null) this.T_axis[i] = new Number();
-                this.T_axis[i].FNumber = 0 + (i - this.Lbl_T_Axis.GetUpperBound(0)) * TimeDiv.FNumber;
+
+                this.T_axis[i].FNumber = i * TimeDiv.FNumber + ZeroTimePoint.FNumber - (TimeDiv.FNumber * this.Lbl_T_Axis.GetUpperBound(0) / 2.0f);
+
                 this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
             }
             ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
@@ -449,14 +453,13 @@ namespace Osc_v5
         public const byte USB2_Win_Div = 10;
         public const byte USB2_MillisecondsPerTransfer = 55;
         public const byte USB2_SecondsOfBuffer = 10;
-        public const byte USB2_NumberOfPointsPerTick = 3;
-        public static UInt16[] USB2_Buffer = new UInt16[(UInt32)Math.Ceiling((double)(USB2_SecondsOfBuffer * 1000 / USB2_MillisecondsPerTransfer * USB2_NumberOfPackets * USB2_TransferSize / 2 * 2))];//double buffer needed to ensure full screen can be drawn @10secs.
+        public static Int16[] USB2_Buffer = new Int16[(UInt32)Math.Ceiling((double)(USB2_SecondsOfBuffer * 1000 / USB2_MillisecondsPerTransfer * USB2_NumberOfPackets * USB2_TransferSize / 2 * 2))];//double buffer needed to ensure full screen can be drawn @10secs.
         public Int32 USB2_BufferPosition16 = (Int32)Math.Ceiling((double)(USB2_SecondsOfBuffer * 1000 / USB2_MillisecondsPerTransfer * USB2_NumberOfPackets * USB2_TransferSize / 2));
         public Int32 USB2_BufferIterations = 0; //For performance reasons, ie. to avoid during first iteration searches take through the whole buffer
         public Int32 USB2_NumberOfReads = 0;
         
 
-        public static float[][] USB2_VertexBuffer = new float[3][];
+        public static float[][] USB2_VertexBuffer = new float[4][];        
         public static float[] USB2_VertexBufferTrigger = new float[2 * 2 * 2]; //Two lines, of two dimension tupple
 
         Stopwatch USB2_Watch = new Stopwatch();
@@ -794,6 +797,7 @@ namespace Osc_v5
                     Array.Clear(USB2_VertexBuffer[0], 0, USB2_VertexBuffer[0].Length);
                     Array.Clear(USB2_VertexBuffer[1], 0, USB2_VertexBuffer[1].Length);
                     Array.Clear(USB2_VertexBuffer[2], 0, USB2_VertexBuffer[2].Length);
+                    Array.Clear(USB2_VertexBuffer[3], 0, USB2_VertexBuffer[3].Length);
 
                     USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_USB2_BackBufferFilled, null, 0);
                     USB2_Device_Status.i2_Set(0, USB2_Device_Status.i2_USB2_BackBufferLocked, null, 0);
@@ -801,16 +805,6 @@ namespace Osc_v5
                     OGL_Screen_Status.i2_Set(1, OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn, null, 0);
                     
                     
-                    for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
-                    {
-                        USB2_VertexBuffer[0][i] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
-                        USB2_VertexBuffer[0][i + 2] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
-                        USB2_VertexBuffer[0][i + 4] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
-                        USB2_VertexBuffer[1][i]++;
-                        USB2_VertexBuffer[1][i + 2]++;
-                        USB2_VertexBuffer[1][i + 4]++;
-                    }
-
                     butUSB2.Text = "Disconnect from USB device";
                     butUSB2.Enabled = true;
 
@@ -852,12 +846,12 @@ namespace Osc_v5
                                 {
                                     if (i < USB2_Buffer.Length - USB2_BufferSize8 / 2)
                                     {
-                                        if (USB2_Buffer[i + USB2_BufferSize8 / 2] == 65530)
+                                        if (USB2_Buffer[i + USB2_BufferSize8 / 2] == 32237)
                                             i = i; //will be hit when the USB cannt transfer all the data, lower size per packet is adviced
                                         USB2_Buffer[i] = USB2_Buffer[i + USB2_BufferSize8 / 2];
                                     }
                                     else
-                                        USB2_Buffer[i] = 65530;
+                                        USB2_Buffer[i] = 32237;
                                 }
 
                                 //Array.Copy(USB2_Buffer, USB2_BufferSize8 / 2, USB2_Buffer, 0, USB2_Buffer.Length-USB2_BufferSize8/2);
@@ -889,11 +883,9 @@ namespace Osc_v5
                                 switch (USB2_Mode)
                                 {
                                     case 1:
-                                        Standard_Mode();
+                                        Standard_Mode2();
                                         break;
-                                    case 3:
-                                        Roll_Mode();
-                                        break;
+                                    
                                     case 4:
                                         Triggered_Mode();
                                         break;
@@ -915,11 +907,11 @@ namespace Osc_v5
                     USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
 
                     //Reset buffer
-                    for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
+                    for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i += 2 * 3) //Starting with 0 as Tick data is first, skipping per 2
                     {
-                        USB2_VertexBuffer[0][i] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
-                        USB2_VertexBuffer[0][i + 2] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
-                        USB2_VertexBuffer[0][i + 4] = (float)(i / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[0][i] = (float)(i / 2 / 3) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[0][i + 2] = (float)(i / 2 / 3) / (float)USB2_Win_W * 2f - 1f;
+                        USB2_VertexBuffer[0][i + 4] = (float)(i / 2 / 3) / (float)USB2_Win_W * 2f - 1f;
                         USB2_VertexBuffer[1][i] = 1;
                         USB2_VertexBuffer[1][i + 2] = 1;
                         USB2_VertexBuffer[1][i + 4] = 1;
@@ -1021,13 +1013,13 @@ namespace Osc_v5
             USB2_Device_Status.Action.i2_UpdateChkList(ChkListUSBInit);
             butUSB2.Enabled = true;
         }
-        
-        public void Standard_Mode()
+
+        public void Standard_Mode2()
         {
             //Collect read data
             USB2_Watch.Start();
 
-             //Initialize and check conditions
+            //Initialize and check conditions
             float timeDiv = (TimeDiv.FNumber == 0) ? throw new ArgumentException("Params error") : TimeDiv.FNumber;
             float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
             //float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
@@ -1039,22 +1031,17 @@ namespace Osc_v5
             float aDCScaleFactor = aDC_Vref / (float)(Math.Pow(2, aDC_bitres) - 1); //mV/ADC_reading
             float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
 
-            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
-            {
-                USB2_VertexBuffer[0][i] = 0;
-                USB2_VertexBuffer[1][i] = 0;
-                USB2_VertexBuffer[2][i] = 0;
-            }
-
+            Array.Clear(USB2_VertexBuffer[3], 0, USB2_VertexBuffer[3].Length);
 
             Int32 RingBufferIndex = USB2_Buffer.Length - 1;
+            Int32 LastDataPosition = 0;
             /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
                 *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
                 */
-            while (USB2_Buffer[RingBufferIndex] == 65530 && RingBufferIndex >= 3) RingBufferIndex -= 2;
+            while (USB2_Buffer[RingBufferIndex] == 32237 && RingBufferIndex >= 3) RingBufferIndex -= 2;
 
             UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
-            UInt32 vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+            float vertexIndex = 1.0f - 2.0f * ((float)cumTickRange / tickRange);
             float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
 
             /* 1) As time data is ordered, run through the Ringbuffer until cumulative Tick data is bigger than time scope requested by user. 
@@ -1079,74 +1066,33 @@ namespace Osc_v5
                     *   
                     */
 
-                USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
-                USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
-                if (USB2_Buffer[RingBufferIndex] != 65530) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
+                USB2_VertexBuffer[3][LastDataPosition] = vertexIndex; LastDataPosition++;
+                USB2_VertexBuffer[3][LastDataPosition] = aDCReading; LastDataPosition++;
+
+                if (USB2_Buffer[RingBufferIndex] != 32237) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
                 {
                     RingBufferIndex -= 2; //jump per two
 
-                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
-                    vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+                    cumTickRange += (UInt16)USB2_Buffer[RingBufferIndex - 1]; //last element is an ADC_read
+                    vertexIndex = 1.0f - 2.0f * ((float)cumTickRange / tickRange);
+                    if (vertexIndex < -1.0f) break; //performance: time is ordered so as soon out of scope, skip
                     aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
 
                 }
                 else RingBufferIndex -= 2;
             };
 
-            //Calculate averages
-            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
-            {
-                if (USB2_VertexBuffer[1][i] != 0) USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
-            }
-
-            //Calculate upper and lower limit
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate)==0)
-            { 
-               float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
-
-               for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
-                {
-                    if (USB2_VertexBuffer[1][i] != 0)
-                    {
-                        USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
-                        USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
-                        USB2_VertexBuffer[1][i - 2]++;
-                        USB2_VertexBuffer[1][i + 2]++;
-                    }
-                }
-            }
-
-            //Filter array
-            UInt32 lastDataPosition = 0;
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
-            { 
-                float[] USB2_FilterBuffer = new float[USB2_VertexBuffer[2].Length];
-                Array.Clear(USB2_FilterBuffer, 0, USB2_FilterBuffer.Length);               
-                
-                for (UInt32 i = 0; i < USB2_VertexBuffer[2].Length - 2; i += 2)
-                {
-                    if (USB2_VertexBuffer[2][i] != 0 && USB2_VertexBuffer[2][i] >= -1 && USB2_VertexBuffer[2][i] <= 1)
-                        if (USB2_VertexBuffer[2][i + 1] != 0 && USB2_VertexBuffer[2][i + 1] >= -1 && USB2_VertexBuffer[2][i + 1] <= 1)
-                        {
-                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i]; lastDataPosition++;
-                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i + 1]; lastDataPosition++;
-                        }
-                }
-                Array.Copy(USB2_FilterBuffer, USB2_VertexBuffer[2], USB2_VertexBuffer[2].Length);
-            }
-
             //Signal Screendraw
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
-                OGL_Screen_Status.i2_Set((Int32) lastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
-            else
-                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
-            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
+            OGL_Screen_Status.i2_Set((Int32)LastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            OGL_Screen_Status.i2_Set(0, OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn, null, 0);
             while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
 
             //Performance counting
             USB2_Watch.Stop(); USB2_WatchData[USB2_WatchDataCounter] = (double)USB2_Watch.ElapsedTicks / Stopwatch.Frequency; if (USB2_WatchDataCounter >= USB2_WatchData.Length - 1) USB2_WatchDataCounter = 0; else USB2_WatchDataCounter++;
             USB2_Watch.Reset(); USB2_Watch.Start();
         }
+
+       
         public void Triggered_Mode()
         {
             //Collect read data
@@ -1165,16 +1111,11 @@ namespace Osc_v5
             float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
 
             Int32 vertexIndexOrigin = (Int32)((USB2_VertexBufferTrigger[0] + 1.0f) / 2 * (USB2_Win_W - 1));
-            
-            UInt32 triggerTPoint = (UInt32) ((USB2_VertexBufferTrigger[0]+1.0f)/2 * (USB2_Win_W-1));
+
+            float triggerTPoint = USB2_VertexBufferTrigger[0];
             float triggerVPointf = USB2_VertexBufferTrigger[5];
 
-            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
-            {
-                USB2_VertexBuffer[0][i] = 0;
-                USB2_VertexBuffer[1][i] = 0;
-                USB2_VertexBuffer[2][i] = 0;
-            }
+            Array.Clear(USB2_VertexBuffer[3], 0, USB2_VertexBuffer[3].Length);
 
 
             //Collect read data
@@ -1182,13 +1123,14 @@ namespace Osc_v5
 
 
             Int32 RingBufferIndex = USB2_Buffer.Length - 1;
+            Int32 lastDataPosition = 0;
             /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
                 *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
                 */
-            while (USB2_Buffer[RingBufferIndex] == 65530 && RingBufferIndex >= 3) RingBufferIndex -= 2;
+            while (USB2_Buffer[RingBufferIndex] == 32237 && RingBufferIndex >= 3) RingBufferIndex -= 2;
 
             UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
-            UInt32 vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+            float vertexIndex = 1.0f - 2.0f * ((float)cumTickRange / tickRange);
             float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
 
             /* 1) As time data is ordered, run through the Ringbuffer until cumulative Tick data is bigger than time scope requested by user. 
@@ -1212,122 +1154,61 @@ namespace Osc_v5
                     *   
                     *   
                     */
+                USB2_VertexBuffer[3][lastDataPosition] = vertexIndex; lastDataPosition++;
+                USB2_VertexBuffer[3][lastDataPosition] = aDCReading; lastDataPosition++;
 
-                USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
-                USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
 
-                if (USB2_Buffer[RingBufferIndex] != 65530) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
+                if (USB2_Buffer[RingBufferIndex] != 32237) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
                 {
                     RingBufferIndex -= 2; //jump per two
 
-                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
-                    vertexIndex = (USB2_Win_W - 1) - (UInt32)((float)cumTickRange / tickRange * (USB2_Win_W - 1));
+                    cumTickRange += (UInt16) USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
+                    vertexIndex = 1.0f - 2.0f * ((float)cumTickRange / tickRange);
+                    if (vertexIndex < -1.0f) break; //performance: time is ordered so as soon out of scope, skip
                     aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
                 }
                 else RingBufferIndex -= 2;
             };
 
-            //Calculate averages
-            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
-            {
-                if (USB2_VertexBuffer[1][i] != 0)
-                {     
-                    USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
-                }
-            }
             //Calculate trigger point
-            Int32 triggerPoint = USB2_VertexBuffer[0].Length-1;
+            Int32 triggerPoint = 0;
             
-            for (Int32 i = USB2_VertexBuffer[0].Length-1; i >= 2; i-=2)     //Average all readings
+            for (Int32 i = 1; i < lastDataPosition-1; i+=2)
             {
-                if (USB2_VertexBuffer[1][i] != 0)
+                bool result1 = false;
+                bool result2 = false;
+                if (USB2_TriggerSlope == 1)
+                { 
+                    result2 = USB2_VertexBuffer[3][i] < triggerVPointf;
+                    result1 = USB2_VertexBuffer[3][i+2] > triggerVPointf;
+                }
+                else
                 {
-                    bool result2 = false;
-                    if (USB2_TriggerSlope == 1)
-                        result2 = USB2_VertexBuffer[2][i] < triggerVPointf;
-                    else
-                        result2 = USB2_VertexBuffer[2][i] > triggerVPointf;
-                    if (result2 == true)
-                        result2 = result2;
-                    Int32 y = i - 2;
-                    for (y = i - 2; y >= 1; y -= 2) { if (USB2_VertexBuffer[1][y] != 0) break; }
-                    bool result1 = false;
-                    if (USB2_TriggerSlope == 1)
-                    { if (y > 0) { result1 = (USB2_VertexBuffer[2][y] > triggerVPointf); } }
-                    else
-                    { if (y > 0) { result1 = (USB2_VertexBuffer[2][y] < triggerVPointf); } }
-
-                    if (result1 && result2)
+                    result2 = USB2_VertexBuffer[3][i] > triggerVPointf;
+                    result1 = USB2_VertexBuffer[3][i + 2] < triggerVPointf;
+                }
+                if (result1 && result2)
+                {
+                    triggerPoint = i-1;
+                    /*TxtUSB2.Invoke(new Action(() =>
                     {
-                        triggerPoint = i;
-                        TxtUSB2.Invoke(new Action(() =>
-                        {
-                            TxtUSB2.AppendText(triggerPoint.ToString());
-                            TxtUSB2.AppendText("\r\n");
-                        }));
-                        break;
-                    }
+                        TxtUSB2.AppendText(triggerPoint.ToString());
+                        TxtUSB2.AppendText("\r\n");
+                    }));*/
+                    break;
                 }
             }
 
             //reposition screen
-            float alpha = (float)1.0f / (2 * USB2_NumberOfPointsPerTick) / USB2_Win_W * 2.0f;
-            float beta = (float)USB2_VertexBufferTrigger[0] -alpha * (float) triggerPoint;
-            for (Int32 i = 0; i < USB2_VertexBuffer[0].Length-1 ; i+=2*USB2_NumberOfPointsPerTick)
+            float beta = triggerTPoint - USB2_VertexBuffer[3][triggerPoint];
+            for (Int32 i = 0; i < USB2_VertexBuffer[3].Length-1 ; i+=2)
             {
-                USB2_VertexBuffer[2][i] = (float) i * alpha + beta;
-                USB2_VertexBuffer[2][i+2] = (float)i * alpha + beta;
-                USB2_VertexBuffer[2][i+4] = (float)i * alpha + beta;
-                USB2_VertexBuffer[0][i] = (float)i * alpha + beta;
-                USB2_VertexBuffer[0][i + 2] = (float)i * alpha + beta;
-                USB2_VertexBuffer[0][i + 4] = (float)i * alpha + beta;
-                USB2_VertexBuffer[1][i] = 1;
-                USB2_VertexBuffer[1][i + 2] = 1;
-                USB2_VertexBuffer[1][i + 4] = 1;
-            }
-
-            //Calculate upper and lower limit
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 0)
-            { 
-                float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
-
-                for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
-                {
-                    if (USB2_VertexBuffer[1][i] != 0)
-                    {
-                        USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
-                        USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
-                        USB2_VertexBuffer[1][i - 2]++;
-                        USB2_VertexBuffer[1][i + 2]++;
-                    }
-                }
-            }
-
-            //Filter array
-            UInt32 lastDataPosition = 0;
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
-            {
-                float[] USB2_FilterBuffer = new float[USB2_VertexBuffer[2].Length];
-                Array.Clear(USB2_FilterBuffer, 0, USB2_FilterBuffer.Length);
-
-                for (UInt32 i = 0; i < USB2_VertexBuffer[2].Length - 2; i += 2)
-                {
-                    if (USB2_VertexBuffer[2][i] != 0 && USB2_VertexBuffer[2][i] >= -1 && USB2_VertexBuffer[2][i] <= 1)
-                        if (USB2_VertexBuffer[2][i + 1] != 0 && USB2_VertexBuffer[2][i + 1] >= -1 && USB2_VertexBuffer[2][i + 1] <= 1)
-                        {
-                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i]; lastDataPosition++;
-                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i + 1]; lastDataPosition++;
-                        }
-                }
-                Array.Copy(USB2_FilterBuffer, USB2_VertexBuffer[2], USB2_VertexBuffer[2].Length);
+                USB2_VertexBuffer[3][i] = USB2_VertexBuffer[3][i] + beta; 
             }
 
             //Signal Screendraw
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
-                OGL_Screen_Status.i2_Set((Int32)lastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
-            else
-                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
-            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
+            OGL_Screen_Status.i2_Set((Int32)lastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            OGL_Screen_Status.i2_Set(0, OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn, null, 0);
             while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
 
             //Performance counting
@@ -1335,172 +1216,7 @@ namespace Osc_v5
             USB2_Watch.Reset(); USB2_Watch.Start();
 
         }
-        public void Roll_Mode()
-        {
-            //Collect read data
-            USB2_Watch.Start();
 
-            //Initialize and check conditions
-            float aDC_Clock = (ADC_Clock.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_Clock.FNumber;
-            float aDC_Vref = (ADC_VRef.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_VRef.FNumber;
-            float aDC_bitres = (ADC_BitRes.FNumber == 0) ? throw new ArgumentException("Params error") : ADC_BitRes.FNumber;
-            float timeDiv = (TimeDiv.FNumber == 0) ? throw new ArgumentException("Params error") : TimeDiv.FNumber;
-            float voltDiv = (VoltDiv.FNumber == 0) ? throw new ArgumentException("Params error") : VoltDiv.FNumber;
-
-            float zeroTimePoint = ZeroTimePoint.FNumber;
-            float zeroVoltPoint = ZeroVoltPoint.FNumber;
-
-            float timeScaleFactor = (float)1000 / aDC_Clock;
-            float aDCScaleFactor = aDC_Vref / (float)(Math.Pow(2, aDC_bitres) - 1); //mV/ADC_reading
-
-
-            float timeMoveFactor = zeroTimePoint / (timeDiv * USB2_Win_Div / 2);
-            float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
-
-            Int32 USB2_RollModeOffset = USB2_VertexBuffer[0].Length;
-            Int32 USB2_DrawBound = USB2_VertexBuffer[0].Length;
-
-            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
-            {
-                USB2_VertexBuffer[0][i] = 0;
-                USB2_VertexBuffer[1][i] = 0;
-                USB2_VertexBuffer[2][i] = 0;
-            }
-
-            CmbTimeDiv.Invoke(new Action(() =>
-            {
-                TimeDiv.FNumber = TimeDiv.gFlt(CmbTimeDiv.SelectedItem.ToString());
-                for (int i = 0; i < this.Lbl_T_Axis.GetUpperBound(0) + 1; i++)
-                {
-                    if (this.T_axis[i] == null) this.T_axis[i] = new Number();
-                    this.T_axis[i].FNumber = 0 + i * TimeDiv.FNumber;
-                    this.Lbl_T_Axis[i].Text = this.T_axis[i].gStr("s");
-                }
-                ZeroTimePoint.FNumber = this.T_axis[(UInt16)(this.Lbl_T_Axis.GetUpperBound(0) + 1) / 2].FNumber;
-            }));
-
-            Int32 RingBufferIndex = USB2_Buffer.Length - 1;
-            /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
-                *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
-                */
-
-            UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
-            UInt32 vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
-            float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
-
-
-            //here we dont pursue performance yet (stop searching after out of bound time element)
-            while (RingBufferIndex >= 3 && !(USB2_BufferIterations == 0 && RingBufferIndex < USB2_BufferPosition16))
-            {
-
-
-                /* Vertexbuffer layout:
-                    * 0                          Datapoint x 682 (=Screenresolution const)
-                    * <------------------------------------------------------------------------->
-                    *   <------------------------------------------------>
-                    *                   1 DATAPOINT
-                    *   <-------------> + <-----------> + <-------------->
-                    *      LOWER             MID               UPPER
-                    *   {Tick;Reading}  +  {Tick;Reading}  + {Tick;Reading}
-                    *      0      1           2      3          4       5
-                    *   Each vertexbuffer item = {Datapoint, # of occurences, Average}
-                    *   
-                    *   
-                    */
-
-
-                //Check if valid measurement
-                if (USB2_Buffer[RingBufferIndex] != 65530 && USB2_Buffer[RingBufferIndex - 1] != 65530)
-                {
-                    //if valid measurement calculate index and ADC_reading
-                    
-                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
-                    vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
-                    aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
-
-                    //Check if ADC reading within time bounds
-                    if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 < USB2_VertexBuffer[0].Length) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
-                    {
-                        if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 >= 0)
-                        {
-                            //check if reading within the RollModeOffset bound
-                            if(USB2_DrawBound <= 2 * USB2_NumberOfPointsPerTick * vertexIndex + 2)
-                            { 
-                                USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
-                                USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
-                            }
-                            USB2_RollModeOffset = (Int32) Math.Min(USB2_RollModeOffset, 2 * USB2_NumberOfPointsPerTick * vertexIndex + 2);
-                            USB2_DrawBound = (Int32)Math.Min(USB2_RollModeOffset, 2 * USB2_NumberOfPointsPerTick * vertexIndex + 2);
-                            if (USB2_RollModeOffset == 2)
-                            {
-                                USB2_DrawBound = USB2_VertexBuffer[0].Length-2*2*USB2_NumberOfPointsPerTick; //Length - 1
-                                USB2_RollModeOffset = USB2_VertexBuffer[0].Length;
-                                cumTickRange = 0;
-                                for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
-                                {
-                                    USB2_VertexBuffer[0][i] = 0;
-                                    USB2_VertexBuffer[1][i] = 0;
-                                    USB2_VertexBuffer[2][i] = 0;
-                                }
-                            }
-                        }
-                    }
-                    else RingBufferIndex = 0; //For performance reasons: time is ordered, so from first out of bound jump out of loop
-                }
-                RingBufferIndex -= 2; //jump per two
-            };
-
-           
-            //Move the time axis
-            for (Int32 i = USB2_RollModeOffset; i < USB2_VertexBuffer[0].Length-2; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
-            {
-                USB2_VertexBuffer[0][i - 2] = (float)(((i-USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
-                USB2_VertexBuffer[0][i] = (float)(((i - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
-                USB2_VertexBuffer[0][i + 2] = (float)(((i - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
-                USB2_VertexBuffer[1][i - 2] = 1;
-                USB2_VertexBuffer[1][i] = 1;
-                USB2_VertexBuffer[1][i + 2] = 1;
-            }
-            for (Int32 i = 2; i < USB2_RollModeOffset-2; i += 2 * USB2_NumberOfPointsPerTick) //Starting with 0 as Tick data is first, skipping per 2
-            {
-                USB2_VertexBuffer[0][i - 2] = (float)(((i + USB2_VertexBuffer[0].Length - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
-                USB2_VertexBuffer[0][i] = (float)(((i + USB2_VertexBuffer[0].Length - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
-                USB2_VertexBuffer[0][i + 2] = (float)(((i + USB2_VertexBuffer[0].Length - USB2_RollModeOffset) / 2 / USB2_NumberOfPointsPerTick) / (float)USB2_Win_W * 2f - 1f);
-                USB2_VertexBuffer[1][i - 2] = 1;
-                USB2_VertexBuffer[1][i] = 1;
-                USB2_VertexBuffer[1][i + 2] = 1;
-            }
-
-            //Calculate averages
-            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
-            {
-                if (USB2_VertexBuffer[1][i] != 0) USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
-            }
-
-            //Calculate upper and lower limit
-            float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
-
-            for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
-            {
-                if (USB2_VertexBuffer[1][i] != 0)
-                {
-                    USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
-                    USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
-                    USB2_VertexBuffer[1][i - 2] = 0;
-                    USB2_VertexBuffer[1][i + 2] = 0;
-                }
-            }
-
-
-            //Signal Screendraw
-            OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
-            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
-            while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
-
-            //Performance counting
-            USB2_Watch.Stop(); USB2_WatchData[USB2_WatchDataCounter] = (double)USB2_Watch.ElapsedTicks / Stopwatch.Frequency; if (USB2_WatchDataCounter >= USB2_WatchData.Length - 1) USB2_WatchDataCounter = 0; else USB2_WatchDataCounter++;
-            USB2_Watch.Reset(); USB2_Watch.Start();
-        }
         public void Memory_Mode()
         {
             //Collect read data
@@ -1523,27 +1239,27 @@ namespace Osc_v5
             float timeMoveFactor = zeroTimePoint / (timeDiv * USB2_Win_Div / 2);
             float aDCMoveFactor = zeroVoltPoint / (voltDiv * USB2_Win_Div / 2); //mV/{0...100%}                        
 
-
-            for (UInt32 i = 1; i < USB2_VertexBuffer[0].Length; i += 2)
-            {
-                USB2_VertexBuffer[0][i] = 0;
-                USB2_VertexBuffer[1][i] = 0;
-                USB2_VertexBuffer[2][i] = 0;
-            }
-
+            Array.Clear(USB2_VertexBuffer[3], 0, USB2_VertexBuffer[3].Length);
+            
 
             Int32 RingBufferIndex = USB2_Buffer.Length - 1;
+            Int32 LastDataPosition = 0;
             /*Search for first valable datapoint, ie. <>65535. Dispersed non-valable datapoints are assumed to not exist
                 *We let RingBufferIndex=1 pass, as it would mean there is no valable data at all and it will not execute anything
                 */
 
             UInt64 cumTickRange = 0;// USB2_Buffer[RingBufferIndex - 1];
-            UInt32 vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (-timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
+            //float vertexIndex = 1.0f - 2.0f * ((float)cumTickRange / tickRange);
+            float tickRange = timeDiv * USB2_Win_Div / 1000 * aDC_Clock;
+            float alpha = -2.0f/tickRange;
+            float beta = alpha * (zeroTimePoint * aDC_Clock/1000);
+            float vertexIndex = alpha * (float)cumTickRange + beta;
+            //float vertexIndex = 1.0f - 2.0f * ((float)cumTickRange / tickRange);
+            //vertexIndex = vertexIndex + 1.0f / 2.0f - zeroTimePoint / (timeDiv * USB2_Win_Div);
             float aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
 
-
             //here we dont pursue performance yet (stop searching after out of bound time element)
-            while (RingBufferIndex >= 3 && !(USB2_BufferIterations == 0 && RingBufferIndex < USB2_BufferPosition16))
+            while (RingBufferIndex >= 3 ) //&& !(USB2_BufferIterations == 0 && RingBufferIndex < USB2_BufferPosition16)
             {
 
 
@@ -1561,82 +1277,57 @@ namespace Osc_v5
                     *   
                     */
 
+                USB2_VertexBuffer[3][LastDataPosition] = vertexIndex; LastDataPosition++;
+                USB2_VertexBuffer[3][LastDataPosition] = aDCReading; LastDataPosition++;
+
                 //Check if valid measurement
-                if (USB2_Buffer[RingBufferIndex] != 65530 && USB2_Buffer[RingBufferIndex - 1] != 65530)
+                if (USB2_Buffer[RingBufferIndex] != 32237 && USB2_Buffer[RingBufferIndex - 1] != 32237)
                 {
+                    RingBufferIndex -= 2; //jump per two
                     //if valid measurement calculate index and ADC_reading
-                    cumTickRange += USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
-                    vertexIndex = (UInt32)((USB2_Win_W - 1) * (1 + (-timeMoveFactor + (-1f * cumTickRange * timeScaleFactor) / (timeDiv * USB2_Win_Div / 2))) / 2);
+                    cumTickRange += (UInt16)USB2_Buffer[RingBufferIndex - 1];//last element is an ADC_read
+                    alpha = -2.0f / tickRange;
+                    beta = alpha * (zeroTimePoint * aDC_Clock/1000);
+                    vertexIndex = alpha * (float)cumTickRange + beta;
+                    //vertexIndex = 1.0f - 2.0f * ((float)cumTickRange / tickRange);
+                    //vertexIndex = vertexIndex + 1.0f / 2.0f - zeroTimePoint / (timeDiv * USB2_Win_Div);
                     aDCReading = -aDCMoveFactor + (USB2_Buffer[RingBufferIndex] * aDCScaleFactor) / (voltDiv * USB2_Win_Div / 2);
 
                     //Check if ADC reading within time bounds
-                    if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 < USB2_VertexBuffer[0].Length) //To catch unwritten data area, which occur when USB cannt follow the selected data Packet size
-                    {
-                        if (2 * USB2_NumberOfPointsPerTick * vertexIndex + 3 >= 0)
-                        {
-                            USB2_VertexBuffer[0][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3] += aDCReading; //cumul the data
-                            USB2_VertexBuffer[1][2 * USB2_NumberOfPointsPerTick * vertexIndex + 3]++;
-                        }
-                    }
-                    else RingBufferIndex = RingBufferIndex; //For performance reasons: time is ordered, so from first out of bound jump out of loop -> cannt apply as memory goes out of bounds for screening full buffer
+
                 }
-                RingBufferIndex -= 2; //jump per two
+                else RingBufferIndex -= 2;
             };
 
-            //Calculate averages
-            for (UInt32 i = 0; i < USB2_VertexBuffer[0].Length; i++)     //Average all readings
-            {
-                if (USB2_VertexBuffer[1][i] != 0) USB2_VertexBuffer[2][i] = USB2_VertexBuffer[0][i] / USB2_VertexBuffer[1][i];
-            }
-
-            //Calculate upper and lower limit
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 0)
-            {
-                float range = aDC_Vref / (float)Math.Pow(2, aDC_bitres) / (voltDiv * (float)USB2_Win_Div) * 2f;
-
-                for (UInt32 i = 3; i < USB2_VertexBuffer[0].Length - 2; i += 6)     //All readings (unpair) every 6 items
-                {
-                    if (USB2_VertexBuffer[1][i] != 0)
-                    {
-                        USB2_VertexBuffer[0][i - 2] = USB2_VertexBuffer[0][i] - range; //Lower item
-                        USB2_VertexBuffer[0][i + 2] = USB2_VertexBuffer[0][i] + range;//Upper item
-                        USB2_VertexBuffer[1][i - 2]++;
-                        USB2_VertexBuffer[1][i + 2]++;
-                    }
-                }
-            }
-
             //Filter array
-            UInt32 lastDataPosition = 0;
+            UInt32 CopyPosition = 0;
             if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
             {
-                float[] USB2_FilterBuffer = new float[USB2_VertexBuffer[2].Length];
+                float[] USB2_FilterBuffer = new float[USB2_VertexBuffer[3].Length];
                 Array.Clear(USB2_FilterBuffer, 0, USB2_FilterBuffer.Length);
 
-                for (UInt32 i = 0; i < USB2_VertexBuffer[2].Length - 2; i += 2)
+                for (UInt32 i = 0; i < USB2_VertexBuffer[3].Length - 2; i += 2)
                 {
-                    if (USB2_VertexBuffer[2][i] != 0 && USB2_VertexBuffer[2][i] >= -1 && USB2_VertexBuffer[2][i] <= 1)
-                        if (USB2_VertexBuffer[2][i + 1] != 0 && USB2_VertexBuffer[2][i + 1] >= -1 && USB2_VertexBuffer[2][i + 1] <= 1)
+                    if (USB2_VertexBuffer[3][i] != 0 && USB2_VertexBuffer[3][i] >= -1 && USB2_VertexBuffer[3][i] <= 1)
+                        if (USB2_VertexBuffer[3][i + 1] != 0 && USB2_VertexBuffer[3][i + 1] >= -1 && USB2_VertexBuffer[3][i + 1] <= 1)
                         {
-                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i]; lastDataPosition++;
-                            USB2_FilterBuffer[lastDataPosition] = USB2_VertexBuffer[2][i + 1]; lastDataPosition++;
+                            USB2_FilterBuffer[CopyPosition] = USB2_VertexBuffer[3][i]; CopyPosition++;
+                            USB2_FilterBuffer[CopyPosition] = USB2_VertexBuffer[3][i + 1]; CopyPosition++;
                         }
                 }
-                Array.Copy(USB2_FilterBuffer, USB2_VertexBuffer[2], USB2_VertexBuffer[2].Length);
+                Array.Copy(USB2_FilterBuffer, USB2_VertexBuffer[3], USB2_VertexBuffer[3].Length);
             }
 
             //Signal Screendraw
-            if (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_Extrapolate) == 1)
-                OGL_Screen_Status.i2_Set((Int32)lastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
-            else
-                OGL_Screen_Status.i2_Set(USB2_VertexBuffer[2].Length, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
-            NativeMethods.OGL_ScreenDrawn(0); //Give signal to OGL conditional variable to unlock the mutex and draw the screen
+            OGL_Screen_Status.i2_Set((Int32)LastDataPosition, OGL_Screen_Status.i2_USB2_OGL_LastDataPosition, null, 0); //Provide datapoint size to be drawn
+            OGL_Screen_Status.i2_Set(0, OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn, null, 0);
             while (Marshal.ReadByte(OGL_Screen_Status.i2_USB2_OGL_ScreenDrawn) == 0) ; //Wait for the screen to be drawn
 
             //Performance counting
             USB2_Watch.Stop(); USB2_WatchData[USB2_WatchDataCounter] = (double)USB2_Watch.ElapsedTicks / Stopwatch.Frequency; if (USB2_WatchDataCounter >= USB2_WatchData.Length - 1) USB2_WatchDataCounter = 0; else USB2_WatchDataCounter++;
             USB2_Watch.Reset(); USB2_Watch.Start();
         }
+
         public void SetTransformParams(object sender, EventArgs e)
         {
         //ZeroVoltPoint.Id = 1;
